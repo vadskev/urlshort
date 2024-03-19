@@ -33,12 +33,18 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(201)
-		w.Write([]byte("http://localhost:8080/" + shortURL))
+		_, err := w.Write([]byte("http://localhost:8080/" + shortURL))
+		if err != nil {
+			return
+		}
 
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(400)
-		w.Write([]byte("No URL in request"))
+		_, err := w.Write([]byte("No URL in request"))
+		if err != nil {
+			return
+		}
 	}
 }
 
