@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/vadskev/urlshort/config"
+	"github.com/vadskev/urlshort/internal/storage"
 	"io"
 	"net/http"
 
@@ -9,8 +11,13 @@ import (
 	"github.com/vadskev/urlshort/internal/util"
 )
 
+type HandlerStorage struct {
+	ShortURLAddr string
+	Store        storage.MemStorage
+}
+
 // HandlerPost
-func HandlerPost(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerStorage) HandlerPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "This is not a POST request, use POST request", http.StatusBadRequest)
 		return
@@ -27,7 +34,13 @@ func HandlerPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortURL, err := app.ShortURL(string(body))
+	shortCode := app.GenerateRandomString()
+
+	err = h.Store.AddURL(shortCode, string(body))
+	if err != nil {
+		return
+	}
+
 	if err != nil {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(400)
@@ -36,7 +49,9 @@ func HandlerPost(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		_, err := w.Write([]byte("http://" + shortURL))
+
+		url := "http://" + config.GetConfig().HostServer + "/" + shortCode
+		_, err = w.Write([]byte(url))
 		if err != nil {
 			return
 		}
@@ -44,10 +59,10 @@ func HandlerPost(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandlerGet
-func HandlerGet(w http.ResponseWriter, r *http.Request) {
+func (h *HandlerStorage) HandlerGet(w http.ResponseWriter, r *http.Request) {
 	shortCode := chi.URLParam(r, "code")
 
-	expandedURL, err := app.ExpandURL(shortCode)
+	expandedURL, err := h.Store.GetURL(shortCode)
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 	}

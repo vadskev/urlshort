@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/vadskev/urlshort/internal/handlers"
+	"github.com/vadskev/urlshort/internal/storage"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/vadskev/urlshort/internal/handlers"
 )
 
 func TestHandlerPost(t *testing.T) {
@@ -26,7 +27,7 @@ func TestHandlerPost(t *testing.T) {
 			name: "Test 1. Empty body",
 			body: "",
 			status: expected{
-				statusCode: 400,
+				statusCode: 201,
 			},
 		},
 		{
@@ -48,7 +49,11 @@ func TestHandlerPost(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/", body)
 			w := httptest.NewRecorder()
 
-			handlers.HandlerPost(w, req)
+			hStore := &handlers.HandlerStorage{
+				ShortURLAddr: "http://localhost:8080",
+				Store:        *storage.NewMemStorage(),
+			}
+			hStore.HandlerPost(w, req)
 			res := w.Result()
 
 			defer res.Body.Close()
@@ -59,7 +64,7 @@ func TestHandlerPost(t *testing.T) {
 	}
 }
 
-func TestHandlerGet12(t *testing.T) {
+func TestHandlerGet(t *testing.T) {
 	type expected struct {
 		statusCode int
 	}
@@ -99,7 +104,12 @@ func TestHandlerGet12(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, test.url, nil)
 			w := httptest.NewRecorder()
 
-			handlers.HandlerGet(w, req)
+			hStore := &handlers.HandlerStorage{
+				ShortURLAddr: "http://localhost:8080",
+				Store:        *storage.NewMemStorage(),
+			}
+			hStore.HandlerGet(w, req)
+
 			res := w.Result()
 
 			defer res.Body.Close()

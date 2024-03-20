@@ -10,11 +10,11 @@ const (
 	getPostfix    = "/{code}"
 )
 
-func Router() *chi.Mux {
+func Router(h *handlers.HandlerStorage) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Post(createPostfix, handlers.HandlerPost)
-	r.Get(getPostfix, handlers.HandlerGet)
+	r.Post(createPostfix, h.HandlerPost)
+	r.Get(getPostfix, h.HandlerGet)
 
 	return r
 }
