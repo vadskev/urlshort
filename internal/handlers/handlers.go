@@ -19,17 +19,23 @@ type HandlerStorage struct {
 // HandlerPost
 func (h *HandlerStorage) HandlerPost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(400)
 		http.Error(w, "This is not a POST request, use POST request", http.StatusBadRequest)
 		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(400)
 		http.Error(w, "Reading POST body request failed", http.StatusBadRequest)
 		return
 	}
 
 	if len(body) < 1 && util.IsURL(string(body)) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(400)
 		http.Error(w, "Empty POST body request", http.StatusBadRequest)
 		return
 	}
@@ -38,23 +44,19 @@ func (h *HandlerStorage) HandlerPost(w http.ResponseWriter, r *http.Request) {
 
 	err = h.Store.AddURL(shortCode, string(body))
 	if err != nil {
-		return
-	}
-
-	if err != nil {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(400)
 		http.Error(w, "URL not correct failed to shorten", http.StatusBadRequest)
 		return
-	} else {
-		w.Header().Set("content-type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
+	}
 
-		url := "http://" + config.GetConfig().HostServer + "/" + shortCode
-		_, err = w.Write([]byte(url))
-		if err != nil {
-			return
-		}
+	w.Header().Set("content-type", "text/plain")
+	w.WriteHeader(http.StatusCreated)
+
+	url := "http://" + config.GetConfig().HostServer + "/" + shortCode
+	_, err = w.Write([]byte(url))
+	if err != nil {
+		return
 	}
 }
 
