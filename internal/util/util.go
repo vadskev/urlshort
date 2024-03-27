@@ -4,8 +4,8 @@ import (
 	"net/url"
 )
 
-// IsURL проверяем валидность URL
-func IsURL(str string) bool {
+// ValidateAddress проверяем валидность URL
+func ValidateAddress(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
