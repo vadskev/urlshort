@@ -37,7 +37,7 @@ func New(store URLStore) http.HandlerFunc {
 			http.Error(w, ErrURLNotFound.Error(), http.StatusBadRequest)
 			return
 		}
-		w.Header().Set("Location", url.RawURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
+		w.Header().Set("Location", url.RawURL)
 	}
 }

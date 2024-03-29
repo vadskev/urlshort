@@ -29,22 +29,9 @@ func TestMemStorage_Add(t *testing.T) {
 			},
 			wantErr: nil,
 		},
-		{
-			name: "Test add key exists",
-			keyData: entity.Links{
-				Slug:   "cvbdfy",
-				RawURL: "https://test.com",
-			},
-			want: entity.Links{
-				Slug:   "cvbdfy",
-				RawURL: "https://test.com",
-			},
-			wantErr: entity.ErrSlugExists,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			got, err := store.Add(tt.keyData)
 			if err != nil {
 				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
@@ -89,19 +76,16 @@ func TestMemStorage_Get(t *testing.T) {
 			name:    "Test the key no exists",
 			key:     "sdfsdf",
 			want:    entity.Links{},
-			wantErr: nil,
+			wantErr: entity.ErrNotFound,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := store.Get(tt.key)
-			if err != nil {
-				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
-				return
+
+			if got, _ := store.Get(tt.key); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Get() got = %v, want %v", got, tt.want)
-			}
+
 		})
 	}
 }

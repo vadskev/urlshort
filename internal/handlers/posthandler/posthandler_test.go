@@ -25,7 +25,7 @@ func TestNew(t *testing.T) {
 			name:      "Test normal",
 			inputLink: "https://practicum.yandex.ru/",
 			want: want{
-				code:        200,
+				code:        201,
 				contentType: "text/plain",
 			},
 		},
@@ -64,10 +64,8 @@ func TestNew(t *testing.T) {
 			require.Equal(t, rr.Code, tt.want.code)
 			require.Equal(t, rr.Result().Header.Get("content-type"), tt.want.contentType)
 
-			defer func() {
-				err = req.Body.Close()
-				require.NoError(t, err)
-			}()
+			err = req.Body.Close()
+			require.NoError(t, err)
 		})
 	}
 }
