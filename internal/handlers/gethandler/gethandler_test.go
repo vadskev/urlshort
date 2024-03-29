@@ -2,38 +2,75 @@ package gethandler
 
 import (
 	"net/http"
-	"reflect"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/internal/entity"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
 func TestNew(t *testing.T) {
-
-	storeTest := memstorage.New()
-	storeTest.Add(entity.Links{RawURL: "https://practicum.yandex.ru/", Slug: "bfebrehbreh"})
-	storeTest.Add(entity.Links{RawURL: "https://yandex.ru/", Slug: "asdxvsdf"})
-
-	type args struct {
-		store URLStore
+	type want struct {
+		code        int
+		contentType string
 	}
 	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
+		name          string
+		requestMethod string
+		requestPath   string
+		want          want
 	}{
 		{
-			name: "Test 1",
-			args: args{store: storeTest},
+			name:          "Test normal",
+			requestMethod: http.MethodGet,
+			requestPath:   "/sdjfkh",
+			want: want{
+				code:        307,
+				contentType: "text/plain",
+			},
+		},
+		{
+			name:          "Test no url",
+			requestMethod: http.MethodGet,
+			requestPath:   "/hhjjj",
+			want: want{
+				code:        400,
+				contentType: "text/plain",
+			},
 		},
 	}
 
+	store := memstorage.New()
+	store.Add(entity.Links{
+		RawURL: "https://practicum.yandex.ru/",
+		Slug:   "sdjfkh",
+	})
+	store.Add(entity.Links{
+		RawURL: "https://yandex.ru/",
+		Slug:   "asdxvsdf",
+	})
+
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			if got := New(tt.args.store); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("New() = %v, want %v", got, tt.want)
-			}
+			handler := New(store)
+			r := chi.NewRouter()
+			r.Get("/{code}", handler)
+
+			srv := httptest.NewServer(r)
+			defer srv.Close()
+
+			resp, err := http.Get(srv.URL + tt.requestPath)
+			require.NoError(t, err)
+
+			defer func() {
+				resp.Body.Close()
+				require.NoError(t, err)
+			}()
+
+			require.Equal(t, resp.StatusCode, tt.want.code)
 		})
 	}
 }

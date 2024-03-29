@@ -2,7 +2,6 @@ package gethandler
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -21,12 +20,15 @@ type URLStore interface {
 
 func New(store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/plain")
+
 		if r.Method != http.MethodGet {
 			http.Error(w, ErrMethodRequest.Error(), http.StatusBadRequest)
 			return
 		}
 
 		shortCode := chi.URLParam(r, "code")
+
 		if shortCode == "" {
 			http.Error(w, ErrURLEmpty.Error(), http.StatusBadRequest)
 			return
@@ -37,9 +39,8 @@ func New(store URLStore) http.HandlerFunc {
 			http.Error(w, ErrURLNotFound.Error(), http.StatusBadRequest)
 			return
 		}
-		log.Println(url.RawURL)
-		w.Header().Add("Content-Type", "text/plain")
-		w.Header().Set("Location", url.RawURL)
+
 		w.WriteHeader(http.StatusTemporaryRedirect)
+		w.Header().Set("Location", url.RawURL)
 	}
 }
