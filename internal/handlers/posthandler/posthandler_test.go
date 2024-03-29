@@ -14,7 +14,6 @@ import (
 func TestNew(t *testing.T) {
 	type want struct {
 		code        int
-		response    string
 		contentType string
 	}
 	tests := []struct {

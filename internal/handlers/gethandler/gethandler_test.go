@@ -43,14 +43,18 @@ func TestNew(t *testing.T) {
 	}
 
 	store := memstorage.New()
-	store.Add(entity.Links{
+
+	_, err := store.Add(entity.Links{
 		RawURL: "https://practicum.yandex.ru/",
 		Slug:   "sdjfkh",
 	})
-	store.Add(entity.Links{
+	require.NoError(t, err)
+
+	_, err = store.Add(entity.Links{
 		RawURL: "https://yandex.ru/",
 		Slug:   "asdxvsdf",
 	})
+	require.NoError(t, err)
 
 	for _, tt := range tests {
 		tt := tt
