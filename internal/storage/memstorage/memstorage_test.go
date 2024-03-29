@@ -1,7 +1,6 @@
 package memstorage
 
 import (
-	"log"
 	"reflect"
 	"sync"
 	"testing"
@@ -10,35 +9,44 @@ import (
 )
 
 func TestMemStorage_Add(t *testing.T) {
-	type fields struct {
-		data sync.Map
-	}
-	type args struct {
-		link entity.Links
-	}
+	store := MemStorage{data: sync.Map{}}
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		keyData entity.Links
 		want    entity.Links
-		wantErr bool
+		wantErr error
 	}{
 		{
-			name:    "Test add",
-			fields:  fields{data: sync.Map{}},
-			args:    args{link: entity.Links{Slug: "bfebrehbreh", RawURL: "https://practicum.yandex.ru/"}},
-			want:    entity.Links{Slug: "bfebrehbreh", RawURL: "https://practicum.yandex.ru/"},
-			wantErr: false,
+			name: "Test add key",
+			keyData: entity.Links{
+				Slug:   "cvbdfy",
+				RawURL: "https://test.com",
+			},
+			want: entity.Links{
+				Slug:   "cvbdfy",
+				RawURL: "https://test.com",
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Test add key exists",
+			keyData: entity.Links{
+				Slug:   "cvbdfy",
+				RawURL: "https://test.com",
+			},
+			want: entity.Links{
+				Slug:   "cvbdfy",
+				RawURL: "https://test.com",
+			},
+			wantErr: entity.ErrSlugExists,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			log.Printf("%#v", tt)
-			store := &MemStorage{
-				data: tt.fields.data,
-			}
-			got, err := store.Add(tt.args.link)
-			if (err != nil) != tt.wantErr {
+
+			got, err := store.Add(tt.keyData)
+			if err != nil {
 				t.Errorf("Add() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -50,37 +58,44 @@ func TestMemStorage_Add(t *testing.T) {
 }
 
 func TestMemStorage_Get(t *testing.T) {
-	type fields struct {
-		data sync.Map
-	}
-	type args struct {
-		key string
-	}
+	store := MemStorage{data: sync.Map{}}
+
+	store.data.Store("sdflk", entity.Links{
+		Slug:   "sdflk",
+		RawURL: "https://example.com",
+	})
+
+	store.data.Store("cvbdfy", entity.Links{
+		Slug:   "cvbdfy",
+		RawURL: "https://test.com",
+	})
+
 	tests := []struct {
 		name    string
-		fields  fields
-		args    args
+		key     string
 		want    entity.Links
-		wantErr bool
+		wantErr error
 	}{
 		{
-			name:    "Test add",
-			fields:  fields{data: sync.Map{}},
-			args:    args{"bfebrehbreh"},
-			want:    entity.Links{Slug: "bfebrehbreh", RawURL: "https://practicum.yandex.ru/"},
-			wantErr: false,
+			name: "Test key exists",
+			key:  "cvbdfy",
+			want: entity.Links{
+				Slug:   "cvbdfy",
+				RawURL: "https://test.com",
+			},
+			wantErr: entity.ErrSlugExists,
+		},
+		{
+			name:    "Test the key no exists",
+			key:     "sdfsdf",
+			want:    entity.Links{},
+			wantErr: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store := &MemStorage{
-				data: tt.fields.data,
-			}
-
-			store.Add(entity.Links{Slug: "bfebrehbreh", RawURL: "https://practicum.yandex.ru/"})
-
-			got, err := store.Get(tt.args.key)
-			if (err != nil) != tt.wantErr {
+			got, err := store.Get(tt.key)
+			if err != nil {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -97,8 +112,8 @@ func TestNew(t *testing.T) {
 		want *MemStorage
 	}{
 		{
-			name: "Test new",
-			want: &MemStorage{data: sync.Map{}},
+			name: "Test 1",
+			want: New(),
 		},
 	}
 	for _, tt := range tests {
