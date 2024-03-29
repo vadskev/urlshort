@@ -64,8 +64,12 @@ func TestNew(t *testing.T) {
 			require.Equal(t, rr.Code, tt.want.code)
 			require.Equal(t, rr.Result().Header.Get("content-type"), tt.want.contentType)
 
-			err = req.Body.Close()
 			require.NoError(t, err)
+
+			err = req.Body.Close()
+			if err != nil {
+				require.NoError(t, err)
+			}
 		})
 	}
 }
