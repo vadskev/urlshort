@@ -70,7 +70,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 
 			defer func() {
-				resp.Body.Close()
+				err = resp.Body.Close()
 				require.NoError(t, err)
 			}()
 

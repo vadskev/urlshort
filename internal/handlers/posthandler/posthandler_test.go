@@ -1,11 +1,12 @@
 package posthandler
 
 import (
-	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/config"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
@@ -54,27 +55,20 @@ func TestNew(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 
+			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.inputLink))
+			w := httptest.NewRecorder()
+
 			handler := New(cfg, store)
-			req, err := http.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte(tt.inputLink)))
-			require.NoError(t, err)
+			handler(w, request)
+			res := w.Result()
 
-			rr := httptest.NewRecorder()
-			handler.ServeHTTP(rr, req)
+			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.contentType, res.Header.Get("content-type"))
 
-			require.Equal(t, rr.Code, tt.want.code)
-			require.Equal(t, rr.Result().Header.Get("content-type"), tt.want.contentType)
-
-			require.NoError(t, err)
-
-			err = rr.Result().Body.Close()
-			if err != nil {
+			defer func() {
+				err := res.Body.Close()
 				require.NoError(t, err)
-			}
-
-			err = req.Body.Close()
-			if err != nil {
-				require.NoError(t, err)
-			}
+			}()
 		})
 	}
 }
