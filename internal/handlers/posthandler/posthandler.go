@@ -13,7 +13,7 @@ import (
 
 var (
 	ErrReadRequest    = errors.New("POST fails to read request body")
-	ErrInvalidUrl     = errors.New("POST invalid body url")
+	ErrInvalidURL     = errors.New("POST invalid body url")
 	ErrAddStore       = errors.New("POST storage add error")
 	ErrFailedResponse = errors.New("POST Failed to write response")
 	ErrMethodRequest  = errors.New("POST Is not POST Request")
@@ -37,7 +37,7 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		}
 
 		if !util.ValidateAddress(string(body)) {
-			http.Error(w, ErrInvalidUrl.Error(), http.StatusBadRequest)
+			http.Error(w, ErrInvalidURL.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -52,12 +52,13 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		url := cfg.BaseURL + "/" + shortCode
 
 		w.Header().Add("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
 
 		_, err = w.Write([]byte(url))
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusCreated)
 	}
 }
