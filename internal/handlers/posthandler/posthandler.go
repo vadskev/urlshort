@@ -52,13 +52,12 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		}
 
 		url := cfg.BaseURL + "/" + shortCode
-
+		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(url))
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
 	}
 }

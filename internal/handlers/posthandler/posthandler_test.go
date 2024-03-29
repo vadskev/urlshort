@@ -63,6 +63,11 @@ func TestNew(t *testing.T) {
 
 			require.Equal(t, rr.Code, tt.want.code)
 			require.Equal(t, rr.Result().Header.Get("content-type"), tt.want.contentType)
+
+			defer func() {
+				err = req.Body.Close()
+				require.NoError(t, err)
+			}()
 		})
 	}
 }

@@ -20,8 +20,6 @@ type URLStore interface {
 
 func New(store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/plain")
-
 		if r.Method != http.MethodGet {
 			http.Error(w, ErrMethodRequest.Error(), http.StatusBadRequest)
 			return
@@ -39,8 +37,7 @@ func New(store URLStore) http.HandlerFunc {
 			http.Error(w, ErrURLNotFound.Error(), http.StatusBadRequest)
 			return
 		}
-
-		w.WriteHeader(http.StatusTemporaryRedirect)
 		w.Header().Set("Location", url.RawURL)
+		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 }
