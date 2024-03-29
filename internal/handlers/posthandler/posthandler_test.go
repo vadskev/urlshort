@@ -1,36 +1,69 @@
 package posthandler
 
 import (
+	"bytes"
 	"net/http"
-	"reflect"
+	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/config"
+	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
 func TestNew(t *testing.T) {
-	type args struct {
-		cfg   *config.Config
-		store URLStore
+	type want struct {
+		code        int
+		response    string
+		contentType string
 	}
 	tests := []struct {
-		name string
-		args args
-		want http.HandlerFunc
+		name      string
+		inputLink string
+		want      want
 	}{
-		// TODO: Add test cases.
+		{
+			name:      "Test normal",
+			inputLink: "https://practicum.yandex.ru/",
+			want: want{
+				code:        200,
+				contentType: "text/plain",
+			},
+		},
+		{
+			name:      "Test wrong url",
+			inputLink: "sdff",
+			want: want{
+				code:        400,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
+		{
+			name:      "Test no url",
+			inputLink: "",
+			want: want{
+				code:        400,
+				contentType: "text/plain; charset=utf-8",
+			},
+		},
 	}
+
+	cfg := config.Load()
+	store := memstorage.New()
+
 	for _, tt := range tests {
-
-		//req := httptest.NewRequest(http.MethodPost, "/", body)
-		//w := httptest.NewRecorder()
-
-		//handlers.HandlerPost(w, req)
-
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			if got := New(tt.args.cfg, tt.args.store); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("New() = %v, want %v", got, tt.want)
-			}
+
+			handler := New(cfg, store)
+			req, err := http.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte(tt.inputLink)))
+			require.NoError(t, err)
+
+			rr := httptest.NewRecorder()
+			handler.ServeHTTP(rr, req)
+
+			require.Equal(t, rr.Code, tt.want.code)
+			require.Equal(t, rr.Result().Header.Get("content-type"), tt.want.contentType)
 		})
 	}
 }
