@@ -66,6 +66,11 @@ func TestNew(t *testing.T) {
 
 			require.NoError(t, err)
 
+			err = rr.Result().Body.Close()
+			if err != nil {
+				require.NoError(t, err)
+			}
+
 			err = req.Body.Close()
 			if err != nil {
 				require.NoError(t, err)
