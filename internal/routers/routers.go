@@ -5,6 +5,7 @@ import (
 	"github.com/vadskev/urlshort/config"
 	"github.com/vadskev/urlshort/internal/handlers/gethandler"
 	"github.com/vadskev/urlshort/internal/handlers/posthandler"
+	"github.com/vadskev/urlshort/internal/logger"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
@@ -15,6 +16,7 @@ const (
 
 func NewRouter(cfg *config.Config, store *memstorage.MemStorage) *chi.Mux {
 	router := chi.NewRouter()
+	router.Use(logger.RequestLogger)
 	router.Post(postPostfix, posthandler.New(cfg, store))
 	router.Get(getPostfix, gethandler.New(store))
 	return router

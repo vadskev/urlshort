@@ -6,19 +6,23 @@ import (
 )
 
 const (
-	defaultServer  = "localhost:8080"
-	defaultBaseURL = "http://localhost:8080"
+	defaultServer      = "localhost:8080"
+	defaultBaseURL     = "http://localhost:8080"
+	defaultStoragePath = "./"
 )
 
 type Config struct {
-	Server  string
-	BaseURL string
+	Server      string
+	BaseURL     string
+	StoragePath string
+	LogLevel    string
 }
 
 func Load() *Config {
 	cfg := &Config{
-		Server:  defaultServer,
-		BaseURL: defaultBaseURL,
+		Server:   defaultServer,
+		BaseURL:  defaultBaseURL,
+		LogLevel: "info",
 	}
 
 	// get env
