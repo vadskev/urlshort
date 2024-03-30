@@ -25,8 +25,6 @@ type URLStore interface {
 
 func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/plain")
-
 		if r.Method != http.MethodPost {
 			http.Error(w, ErrMethodRequest.Error(), http.StatusBadRequest)
 			return
@@ -52,12 +50,13 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		}
 
 		url := cfg.BaseURL + "/" + shortCode
+
+		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(url))
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
 		}
-
 	}
 }

@@ -2,6 +2,7 @@ package gethandler
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -37,7 +38,8 @@ func New(store URLStore) http.HandlerFunc {
 			http.Error(w, ErrURLNotFound.Error(), http.StatusBadRequest)
 			return
 		}
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		log.Println(url.RawURL)
 		w.Header().Set("Location", url.RawURL)
+		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 }
