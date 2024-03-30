@@ -12,10 +12,9 @@ const (
 )
 
 type Config struct {
-	Server      string
-	BaseURL     string
-	StoragePath string
-	LogLevel    string
+	Server   string
+	BaseURL  string
+	LogLevel string
 }
 
 func Load() *Config {
