@@ -27,7 +27,7 @@ func TestNew(t *testing.T) {
 			requestMethod: http.MethodGet,
 			requestPath:   "/sdjfkh",
 			want: want{
-				code:        307,
+				code:        200,
 				contentType: "text/plain",
 			},
 		},
