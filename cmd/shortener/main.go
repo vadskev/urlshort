@@ -23,6 +23,6 @@ func main() {
 
 	err := http.ListenAndServe(cfg.Server, routers.NewRouter(cfg, store))
 	if err != nil {
-		log.Fatal("Failed to start server")
+		logger.Log.Info("Failed to start server")
 	}
 }
