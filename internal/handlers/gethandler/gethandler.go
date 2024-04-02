@@ -20,11 +20,6 @@ type URLStore interface {
 
 func New(store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, ErrMethodRequest.Error(), http.StatusBadRequest)
-			return
-		}
-
 		shortCode := chi.URLParam(r, "code")
 
 		if shortCode == "" {
