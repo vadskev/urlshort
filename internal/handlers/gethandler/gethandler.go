@@ -9,9 +9,8 @@ import (
 )
 
 var (
-	ErrMethodRequest = errors.New("GET Is not GET Request")
-	ErrURLNotFound   = errors.New("GET URL not found")
-	ErrURLEmpty      = errors.New("GET URL empty")
+	ErrURLNotFound = errors.New("GET URL not found")
+	ErrURLEmpty    = errors.New("GET URL empty")
 )
 
 type URLStore interface {

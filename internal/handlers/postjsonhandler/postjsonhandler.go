@@ -1,6 +1,7 @@
-package posthandler
+package postjsonhandler
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -16,8 +17,11 @@ var (
 	ErrInvalidURL     = errors.New("POST invalid body url")
 	ErrAddStore       = errors.New("POST storage add error")
 	ErrFailedResponse = errors.New("POST Failed to write response")
-	ErrMethodRequest  = errors.New("POST Is not POST Request")
 )
+
+type Response struct {
+	URL string `json:"result"`
+}
 
 type URLStore interface {
 	Add(link entity.Links) (entity.Links, error)
@@ -25,6 +29,8 @@ type URLStore interface {
 
 func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var link entity.Links
+		var res Response
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -38,24 +44,37 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 			}
 		}()
 
-		if !util.ValidateAddress(string(body)) {
+		err = link.UnmarshalJSON(body)
+		if err != nil {
+			http.Error(w, ErrReadRequest.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if !util.ValidateAddress(link.RawURL) {
 			http.Error(w, ErrInvalidURL.Error(), http.StatusBadRequest)
 			return
 		}
 
 		shortCode := app.GenerateRandomString()
+		link.Slug = shortCode
 
-		_, err = store.Add(entity.Links{Slug: shortCode, RawURL: string(body)})
+		_, err = store.Add(link)
 		if err != nil {
 			http.Error(w, ErrAddStore.Error(), http.StatusBadRequest)
 			return
 		}
 
-		url := cfg.BaseURL + "/" + shortCode
+		res.URL = cfg.BaseURL + "/" + shortCode
 
-		w.Header().Set("content-type", "text/plain")
+		resp, err := json.Marshal(res)
+		if err != nil {
+			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(url))
+		_, err = w.Write(resp)
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
