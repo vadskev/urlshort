@@ -13,7 +13,7 @@ import (
 const (
 	postPostfix    = "/"
 	getPostfix     = "/{code}"
-	getJsonPostfix = "/api/shorten"
+	getJSONPostfix = "/api/shorten"
 )
 
 func NewRouter(cfg *config.Config, store *memstorage.MemStorage) *chi.Mux {
@@ -22,6 +22,6 @@ func NewRouter(cfg *config.Config, store *memstorage.MemStorage) *chi.Mux {
 	router.Post(postPostfix, posthandler.New(cfg, store))
 	router.Get(getPostfix, gethandler.New(store))
 	router.Get(getPostfix, gethandler.New(store))
-	router.Post(getJsonPostfix, postjsonhandler.New(cfg, store))
+	router.Post(getJSONPostfix, postjsonhandler.New(cfg, store))
 	return router
 }
