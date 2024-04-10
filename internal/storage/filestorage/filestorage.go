@@ -41,6 +41,7 @@ func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
 
 	fileName := filepath.FromSlash(fs.filePath)
 	directory, _ := filepath.Split(fileName)
+
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		err := os.MkdirAll(directory, os.ModePerm)
 		if err != nil {
