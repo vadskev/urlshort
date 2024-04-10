@@ -17,7 +17,7 @@ type FileStore struct {
 }
 
 func New(filePath string) (*FileStore, error) {
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
 		}
 	}
 
-	err = os.WriteFile(fileName, byteFile, 0644)
+	err = os.WriteFile(fileName, byteFile, 0666)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
 }
 
 func (fs *FileStore) ReadFileStorage(memstore *memstorage.MemStorage) error {
-	file, err := os.OpenFile(fs.filePath, os.O_RDONLY|os.O_CREATE, 0644)
+	file, err := os.OpenFile(fs.filePath, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
