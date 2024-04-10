@@ -13,9 +13,10 @@ func TestLoad(t *testing.T) {
 		{
 			name: "Test",
 			want: &Config{
-				Server:   "localhost:8080",
-				BaseURL:  "http://localhost:8080",
-				LogLevel: "info",
+				Server:          "localhost:8080",
+				BaseURL:         "http://localhost:8080",
+				LogLevel:        "info",
+				FileStoragePath: "./tmp/short-url-db.json",
 			},
 		},
 	}
