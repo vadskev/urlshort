@@ -8,6 +8,7 @@ import (
 	"github.com/vadskev/urlshort/internal/handlers/posthandler"
 	"github.com/vadskev/urlshort/internal/handlers/postjsonhandler"
 	"github.com/vadskev/urlshort/internal/logger"
+	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
@@ -17,15 +18,15 @@ const (
 	getJSONPostfix = "/api/shorten"
 )
 
-func NewRouter(cfg *config.Config, store *memstorage.MemStorage) *chi.Mux {
+func NewRouter(cfg *config.Config, store *memstorage.MemStorage, fstore *filestorage.FileStore) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(logger.RequestLogger)
 	router.Use(compress.RequestCompress)
 
-	router.Post(postPostfix, posthandler.New(cfg, store))
+	router.Post(postPostfix, posthandler.New(cfg, store, fstore))
 	router.Get(getPostfix, gethandler.New(store))
 	router.Get(getPostfix, gethandler.New(store))
-	router.Post(getJSONPostfix, postjsonhandler.New(cfg, store))
+	router.Post(getJSONPostfix, postjsonhandler.New(cfg, store, fstore))
 	return router
 }
