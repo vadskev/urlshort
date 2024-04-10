@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/vadskev/urlshort/internal/entity"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
@@ -29,31 +30,28 @@ func New(filePath string) (*FileStore, error) {
 }
 
 func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
-	file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-
-	writer := bufio.NewWriter(file)
+	var byteFile []byte
 
 	line, err := link.MarshalJSON()
 	if err != nil {
 		return err
 	}
+	line = append(line, '\n')
+	byteFile = append(byteFile, line...)
 
-	_, err = writer.Write(append(line, '\n'))
+	fileName := filepath.FromSlash(fs.filePath)
+	directory, _ := filepath.Split(fileName)
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		err := os.MkdirAll(directory, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = os.WriteFile(fileName, byteFile, 0644)
 	if err != nil {
 		return err
 	}
-
-	if err = writer.Flush(); err != nil {
-		return err
-	}
-
-	if err = file.Close(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -82,5 +80,6 @@ func (fs *FileStore) ReadFileStorage(memstore *memstorage.MemStorage) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+
 	return nil
 }
