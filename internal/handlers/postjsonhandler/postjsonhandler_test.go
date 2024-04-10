@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/config"
+	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
@@ -50,6 +51,7 @@ func TestNew(t *testing.T) {
 
 	cfg := config.Load()
 	store := memstorage.New()
+	fstore, _ := filestorage.New(cfg.FileStoragePath)
 
 	for _, tt := range tests {
 		tt := tt
@@ -58,7 +60,7 @@ func TestNew(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.inputLink))
 			w := httptest.NewRecorder()
 
-			handler := New(cfg, store)
+			handler := New(cfg, store, fstore)
 			handler(w, request)
 			res := w.Result()
 
