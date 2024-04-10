@@ -16,7 +16,7 @@ func TestLoad(t *testing.T) {
 				Server:          "localhost:8080",
 				BaseURL:         "http://localhost:8080",
 				LogLevel:        "info",
-				FileStoragePath: "./tmp/short-url-db.json",
+				FileStoragePath: "/tmp/short-url-db.json",
 			},
 		},
 	}
