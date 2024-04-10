@@ -8,6 +8,7 @@ import (
 	"github.com/vadskev/urlshort/config"
 	"github.com/vadskev/urlshort/internal/app"
 	"github.com/vadskev/urlshort/internal/entity"
+	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/util"
 )
 
@@ -23,7 +24,7 @@ type URLStore interface {
 	Add(link entity.Links) (entity.Links, error)
 }
 
-func New(cfg *config.Config, store URLStore) http.HandlerFunc {
+func New(cfg *config.Config, store URLStore, fstore *filestorage.FileStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		body, err := io.ReadAll(r.Body)
@@ -45,7 +46,7 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 
 		shortCode := app.GenerateRandomString()
 
-		_, err = store.Add(entity.Links{Slug: shortCode, RawURL: string(body)})
+		link, err := store.Add(entity.Links{Slug: shortCode, RawURL: string(body)})
 		if err != nil {
 			http.Error(w, ErrAddStore.Error(), http.StatusBadRequest)
 			return
@@ -56,6 +57,12 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(url))
+		if err != nil {
+			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		err = fstore.SaveToFileStorage(&link)
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
