@@ -1,47 +1,62 @@
 package filestorage
 
 import (
-	"bufio"
-	"encoding/json"
+	"bytes"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/vadskev/urlshort/internal/entity"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
 type FileStore struct {
-	file         *os.File
-	inMemoryData *memstorage.MemStorage
-	filePath     string
+	filePath string
+	storage  sync.Map
 }
 
-func New(filePath string) (*FileStore, error) {
-	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+func New(fPath string) *FileStore {
+	return &FileStore{
+		filePath: fPath,
+		storage:  sync.Map{},
+	}
+}
+
+func (fs *FileStore) Add(link entity.Links) (entity.Links, error) {
+	if _, ok := fs.storage.Load(link.Slug); ok {
+		return entity.Links{}, entity.ErrSlugExists
+	}
+
+	fs.storage.Store(link.Slug, link)
+
+	err := fs.save()
 	if err != nil {
-		return nil, err
+		return entity.Links{}, err
 	}
-	store := &FileStore{
-		inMemoryData: memstorage.New(),
-		file:         file,
-		filePath:     filePath,
-	}
-	return store, nil
+	return link, nil
 }
 
-func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
+func (fs *FileStore) save() error {
 	var byteFile []byte
 
-	line, err := link.MarshalJSON()
-	if err != nil {
-		return err
-	}
-	line = append(line, '\n')
-	byteFile = append(byteFile, line...)
+	fs.storage.Range(func(k, v interface{}) bool {
+		link := v.(entity.Links)
+
+		data, err := link.MarshalJSON()
+		if err != nil {
+			return false
+		}
+
+		data = append(data, '\n')
+		byteFile = append(byteFile, data...)
+
+		return true
+	})
 
 	fileName := filepath.FromSlash(fs.filePath)
 	directory, _ := filepath.Split(fileName)
-
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
 		err := os.MkdirAll(directory, os.ModePerm)
 		if err != nil {
@@ -49,37 +64,33 @@ func (fs *FileStore) SaveToFileStorage(link *entity.Links) error {
 		}
 	}
 
-	err = os.WriteFile(fileName, byteFile, 0666)
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.WriteFile(fileName, byteFile, 0666)
 }
 
-func (fs *FileStore) ReadFileStorage(memstore *memstorage.MemStorage) error {
-	file, err := os.OpenFile(fs.filePath, os.O_RDONLY|os.O_CREATE, 0666)
+func (fs *FileStore) Load(ms *memstorage.MemStorage) error {
+	data, err := os.ReadFile(fs.filePath)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	splitData := bytes.Split(data, []byte("\n"))
 
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Bytes()
-
-		var link entity.Links
-		if err = json.Unmarshal(line, &link); err != nil {
-			return err
+	for _, item := range splitData {
+		link := entity.Links{}
+		err = link.UnmarshalJSON(item)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				continue
+			}
 		}
+		if _, ok := fs.storage.Load(link.Slug); ok {
+			return nil
+		}
+		fs.storage.Store(link.Slug, link)
 
-		_, err := memstore.Add(link)
+		_, err = ms.Add(link)
 		if err != nil {
 			return err
 		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return err
 	}
 
 	return nil

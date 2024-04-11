@@ -51,7 +51,7 @@ func TestNew(t *testing.T) {
 
 	cfg := config.Load()
 	store := memstorage.New()
-	fstore, _ := filestorage.New(cfg.FileStoragePath)
+	fstore := filestorage.New(cfg.FileStoragePath)
 
 	for _, tt := range tests {
 		tt := tt

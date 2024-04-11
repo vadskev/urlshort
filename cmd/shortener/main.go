@@ -16,13 +16,9 @@ func main() {
 	cfg := config.Load()
 	store := memstorage.New()
 
-	fstore, err := filestorage.New(cfg.FileStoragePath)
-	if err != nil {
-		log.Println("Empty file store")
-	}
-
-	if err = fstore.ReadFileStorage(store); err != nil {
-		log.Println("Empty file store")
+	fstore := filestorage.New(cfg.FileStoragePath)
+	if err := fstore.Load(store); err != nil {
+		log.Fatal("Error load fstore")
 	}
 
 	if err := logger.New(cfg.LogLevel); err != nil {
@@ -31,7 +27,7 @@ func main() {
 
 	logger.Log.Info("Running server", zap.String("address", cfg.Server))
 
-	err = http.ListenAndServe(cfg.Server, routers.NewRouter(cfg, store, fstore))
+	err := http.ListenAndServe(cfg.Server, routers.NewRouter(cfg, store, fstore))
 	if err != nil {
 		logger.Log.Info("Failed to start server")
 	}

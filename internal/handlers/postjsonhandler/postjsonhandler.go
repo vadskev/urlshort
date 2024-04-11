@@ -59,9 +59,15 @@ func New(cfg *config.Config, store URLStore, fstore *filestorage.FileStore) http
 		shortCode := app.GenerateRandomString()
 		link.Slug = shortCode
 
-		_, err = store.Add(link)
+		link, err = store.Add(link)
 		if err != nil {
 			http.Error(w, ErrAddStore.Error(), http.StatusBadRequest)
+			return
+		}
+
+		_, err = fstore.Add(link)
+		if err != nil {
+			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -81,10 +87,5 @@ func New(cfg *config.Config, store URLStore, fstore *filestorage.FileStore) http
 			return
 		}
 
-		err = fstore.SaveToFileStorage(&link)
-		if err != nil {
-			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
-			return
-		}
 	}
 }

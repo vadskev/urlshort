@@ -52,17 +52,17 @@ func New(cfg *config.Config, store URLStore, fstore *filestorage.FileStore) http
 			return
 		}
 
-		url := cfg.BaseURL + "/" + shortCode
-
-		w.Header().Set("content-type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(url))
+		_, err = fstore.Add(link)
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		err = fstore.SaveToFileStorage(&link)
+		url := cfg.BaseURL + "/" + shortCode
+
+		w.Header().Set("content-type", "text/plain")
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(url))
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
 			return
