@@ -26,6 +26,12 @@ func Load() *Config {
 		FileStoragePath: defaultStoragePath,
 	}
 
+	// get flag
+	flag.StringVar(&cfg.Server, "a", "localhost:8080", "server address; example: -a localhost:8080")
+	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "short url base; example: -b https://yandex.ru")
+	flag.StringVar(&cfg.FileStoragePath, "f", "/tmp/short-url-db.json", "file storage path; example: -f /tmp/short-url-db.json")
+	flag.Parse()
+
 	// get env
 	if envBaseURLShortener := os.Getenv("SERVER_ADDRESS"); envBaseURLShortener != "" {
 		cfg.Server = envBaseURLShortener
@@ -37,12 +43,6 @@ func Load() *Config {
 	if envFileStoragePath := os.Getenv("FILE_STORAGE_PATH"); envFileStoragePath != "" {
 		cfg.FileStoragePath = envFileStoragePath
 	}
-
-	// get flag
-	flag.StringVar(&cfg.Server, "a", "localhost:8080", "server address; example: -a localhost:8080")
-	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "short url base; example: -b https://yandex.ru")
-	flag.StringVar(&cfg.FileStoragePath, "f", "/tmp/short-url-db.json", "file storage path; example: -f /tmp/short-url-db.json")
-	flag.Parse()
 
 	return cfg
 }

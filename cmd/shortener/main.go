@@ -17,11 +17,9 @@ func main() {
 	store := memstorage.New()
 
 	fstore := filestorage.New(cfg.FileStoragePath)
-	/*
-		if err := fstore.Load(store); err != nil {
-			log.Fatal("Error load fstore")
-		}
-	*/
+	if err := fstore.Load(store); err != nil {
+		log.Fatal("Error load fstore")
+	}
 
 	if err := logger.New(cfg.LogLevel); err != nil {
 		log.Fatal("Error logger")
