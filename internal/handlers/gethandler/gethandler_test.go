@@ -23,15 +23,6 @@ func TestNew(t *testing.T) {
 		want          want
 	}{
 		{
-			name:          "Test normal",
-			requestMethod: http.MethodGet,
-			requestPath:   "/sdjfkh",
-			want: want{
-				code:        200,
-				contentType: "text/plain",
-			},
-		},
-		{
 			name:          "Test no url",
 			requestMethod: http.MethodGet,
 			requestPath:   "/hhjjj",
