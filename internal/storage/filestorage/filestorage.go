@@ -68,6 +68,10 @@ func (fs *FileStore) save() error {
 }
 
 func (fs *FileStore) Load(ms *memstorage.MemStorage) error {
+	if _, err := os.Stat(fs.filePath); errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
 	data, err := os.ReadFile(fs.filePath)
 	if err != nil {
 		return err
