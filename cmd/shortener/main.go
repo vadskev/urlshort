@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	/**/
 	cfg := config.Load()
 	store := memstorage.New()
 
