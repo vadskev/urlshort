@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/vadskev/urlshort/internal/config"
 	"github.com/vadskev/urlshort/internal/lib/logger/zp"
-	"github.com/vadskev/urlshort/internal/storage"
 	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/redirect"
@@ -22,8 +21,7 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	)
 
 	// init storage
-	var store storage.Storage
-	store = memstorage.NewMemStorage(log)
+	store := memstorage.NewMemStorage(log)
 
 	// init file storage
 	filestore := filestorage.NewFileStorage(cfg.Storage.FileStoragePath, log)
