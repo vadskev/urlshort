@@ -95,7 +95,7 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) h
 	}
 }
 
-func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
+func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Request
 
@@ -125,6 +125,14 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Info("failed to add url", zp.Err(err))
+			return
+		}
+
+		// add to file store
+		err = fstore.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Info("failed to add url fstore", zp.Err(err))
 			return
 		}
 
