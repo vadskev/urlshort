@@ -48,7 +48,7 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	router.Route("/api/shorten", func(r chi.Router) {
 		r.Use(compress.New(log))
 
-		r.Post("/", save.NewJSON(log, cfg, store))
+		r.Post("/", save.NewJSON(log, cfg, store, filestore))
 	})
 
 	// add url router json
