@@ -1,8 +1,6 @@
-package util
+package verify
 
-import (
-	"net/url"
-)
+import "net/url"
 
 // ValidateAddress проверяем валидность URL
 func ValidateAddress(str string) bool {

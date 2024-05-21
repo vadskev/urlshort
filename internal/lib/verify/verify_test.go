@@ -1,6 +1,8 @@
-package util
+package verify
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestValidateAddress(t *testing.T) {
 	type args struct {
