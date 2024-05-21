@@ -1,8 +1,6 @@
-package app
+package random
 
-import (
-	"math/rand"
-)
+import "math/rand"
 
 // GenerateRandomString Алгоритм сокращения URL
 func GenerateRandomString() string {
