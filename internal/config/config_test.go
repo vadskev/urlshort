@@ -7,6 +7,6 @@ import (
 )
 
 func TestMustLoad(t *testing.T) {
-	// TODO	add test
-	require.Equal(t, "11", "11")
+	cgf := MustLoad()
+	require.NotEmpty(t, cgf)
 }
