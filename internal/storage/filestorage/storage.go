@@ -95,7 +95,7 @@ func (fs *FileStore) GetURL(ctx context.Context, alias string) (storage.URLData,
 	}
 
 	for _, v := range shortUrls {
-		if v.URL == alias {
+		if v.Alias == alias {
 			return v, nil
 		}
 	}
