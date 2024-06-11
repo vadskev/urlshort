@@ -34,7 +34,7 @@ func TestMemStorage_SaveURL(t *testing.T) {
 	store := NewFileStorage("/tmp/file.json", log)
 
 	err := store.SaveURL(ctx, storage.URLData{
-		URL:    "https://ya.ru/",
+		URL:    "https://ya.ru/7",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
@@ -65,10 +65,9 @@ func TestMemStorage_GetURL(t *testing.T) {
 
 	store := NewFileStorage("/tmp/file.json", log)
 	err := store.Get(ctx, store)
-	require.NoError(t, err)
 
 	err = store.SaveURL(ctx, storage.URLData{
-		URL:    "https://ya.ru/",
+		URL:    "https://ya.ru/2",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})

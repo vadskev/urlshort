@@ -36,7 +36,7 @@ func TestServeHTTP(t *testing.T) {
 			query:         "/",
 			method:        http.MethodPost,
 			statusWant:    http.StatusCreated,
-			reqBody:       "https://practicum.yandex.ru",
+			reqBody:       "https://practicum.yandex.ru/55",
 			wantEmptyBody: false,
 		},
 	}
@@ -128,7 +128,7 @@ func Test_JSON_ServeHTTP(t *testing.T) {
 			query:         "/api/shorten",
 			method:        http.MethodPost,
 			statusWant:    http.StatusCreated,
-			reqBody:       "{\"url\":\"https://practicum.yandex.ru\"}",
+			reqBody:       "{\"url\":\"https://practicum.yandex.su\"}",
 			wantEmptyBody: false,
 		},
 	}
