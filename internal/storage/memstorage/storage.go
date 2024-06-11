@@ -24,10 +24,10 @@ func NewMemStorage(log *zap.Logger) *MemStorage {
 }
 
 func (s *MemStorage) SaveURL(ctx context.Context, data storage.URLData) error {
-	if _, ok := s.store.Load(data.Alias); ok {
+	if _, ok := s.store.Load(data.URL); ok {
 		return errors.New("url exists")
 	}
-	s.store.Store(data.Alias, data)
+	s.store.Store(data.URL, data)
 	s.log.Info("added to storage")
 	return nil
 }
