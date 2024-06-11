@@ -32,6 +32,8 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	// init storage
 	var stor storage.Storage
 
+	log.Info("log cfg", zap.Any("cfg:", cfg))
+
 	switch {
 	case cfg.DataBase.DatabaseDSN != "":
 		// init postgresql storage
