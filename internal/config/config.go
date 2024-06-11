@@ -38,9 +38,9 @@ func MustLoad() *Config {
 
 	cfg.ServerAddress = defaultServerAddress
 	cfg.BaseURL = defaultBaseURL
-	cfg.Storage.FileStoragePath = defaultStoragePath
+	//cfg.Storage.FileStoragePath = defaultStoragePath
 	cfg.LogLevel = defaultLogLevel
-	cfg.DataBase.DatabaseDSN = defaultDatabaseDSN
+	//cfg.DataBase.DatabaseDSN = defaultDatabaseDSN
 
 	// get flag
 	flag.StringVar(&cfg.ServerAddress, "a", "localhost:8080", "server address; example: -a localhost:8080")
