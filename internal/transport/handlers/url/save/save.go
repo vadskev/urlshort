@@ -17,9 +17,9 @@ import (
 )
 
 type Request struct {
-	Alias  string `json:"alias,omitempty"`
+	Alias  string `json:"correlation_id"`
 	ResURL string `json:"result,omitempty"`
-	URL    string `json:"url"`
+	URL    string `json:"original_url"`
 }
 
 type Response struct {
