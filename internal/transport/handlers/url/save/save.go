@@ -71,7 +71,14 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			if err.Error() == "url exists" {
+				w.Header().Set("content-type", "text/plain")
 				w.WriteHeader(http.StatusConflict)
+				_, err = w.Write([]byte(req.ResURL))
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					log.Info("failed to write response", zp.Err(err))
+					return
+				}
 				log.Info("Status url exists", zp.Err(err))
 				return
 			} else {
@@ -123,7 +130,7 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			if err.Error() == "url exists" {
-				w.WriteHeader(http.StatusConflict)
+				responseConflict(w, r, req.ResURL)
 				log.Info("Status url exists", zp.Err(err))
 				return
 			} else {
@@ -141,6 +148,14 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 func responseOK(w http.ResponseWriter, r *http.Request, result string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	render.JSON(w, r, Response{
+		Result: result,
+	})
+}
+
+func responseConflict(w http.ResponseWriter, r *http.Request, result string) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusConflict)
 	render.JSON(w, r, Response{
 		Result: result,
 	})
