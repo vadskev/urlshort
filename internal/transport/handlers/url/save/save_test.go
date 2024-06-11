@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/internal/config"
+	"github.com/vadskev/urlshort/internal/storage"
 	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 	"go.uber.org/zap"
@@ -73,16 +74,19 @@ func TestServeHTTP(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	//
+	var stor storage.Storage
+
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
 	_ = filestore.Get(ctx, store)
 
+	stor = filestore
+
 	router := chi.NewRouter()
 	router.Route("/", func(r chi.Router) {
-		r.Post("/", New(log, conf, store))
+		r.Post("/", New(log, conf, stor))
 	})
 
 	ts := httptest.NewServer(router)
@@ -162,16 +166,18 @@ func Test_JSON_ServeHTTP(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	//
+	var stor storage.Storage
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
 	_ = filestore.Get(ctx, store)
 
+	stor = filestore
+
 	router := chi.NewRouter()
 	router.Route("/api/shorten", func(r chi.Router) {
-		r.Post("/", NewJSON(log, conf, store))
+		r.Post("/", NewJSON(log, conf, stor))
 	})
 
 	ts := httptest.NewServer(router)

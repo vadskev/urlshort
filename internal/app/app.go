@@ -31,7 +31,7 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 
 	// init storage
 	var stor storage.Storage
-
+	cfg.DataBase.DatabaseDSN = ""
 	switch {
 	case cfg.DataBase.DatabaseDSN != "":
 		// init postgresql storage
@@ -46,7 +46,6 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 		}
 		stor = dbstore
 		defer dbstore.CloseStorage()
-	case cfg.Storage.FileStoragePath != "":
 	default:
 		// init mem storage
 		memstore := memstorage.NewMemStorage(log)
@@ -57,7 +56,7 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 		if err != nil {
 			log.Info("Error get file store", zp.Err(err))
 		}
-		stor = memstore
+		stor = filestore
 	}
 
 	/**/

@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	// init config
 	cfg := config.MustLoad()
 
