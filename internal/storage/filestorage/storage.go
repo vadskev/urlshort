@@ -38,7 +38,6 @@ func NewFileStorage(filePath string, logger *zap.Logger) *FileStore {
 }
 
 func (fs *FileStore) Get(ctx context.Context, ms storage.Storage) error {
-
 	if _, err := os.Stat(fs.filePath); errors.Is(err, os.ErrNotExist) {
 		fs.log.Info("Error to open file", zp.Err(err))
 		return err
@@ -104,25 +103,29 @@ func (fs *FileStore) GetURL(ctx context.Context, alias string) (storage.URLData,
 }
 
 func (fs *FileStore) SaveURL(ctx context.Context, data storage.URLData) error {
-	file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
-	defer func() {
-		err = file.Close()
+	isExistsURL, _ := fs.isExistsURL(data)
+	if !isExistsURL {
+		file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
+		defer func() {
+			err = file.Close()
+			if err != nil {
+				fs.log.Info("Error to close file", zp.Err(err))
+			}
+		}()
 		if err != nil {
-			fs.log.Info("Error to close file", zp.Err(err))
+			fs.log.Info("Error to open file", zp.Err(err))
+			return err
 		}
-	}()
-	if err != nil {
-		fs.log.Info("Error to open file", zp.Err(err))
-		return err
+		encoder := json.NewEncoder(file)
+		err = encoder.Encode(data)
+		if err != nil {
+			fs.log.Info("Error to encode file", zp.Err(err))
+			return err
+		}
+		return nil
+	} else {
+		return errors.New("url exists")
 	}
-	encoder := json.NewEncoder(file)
-	err = encoder.Encode(data)
-	if err != nil {
-		fs.log.Info("Error to encode file", zp.Err(err))
-		return err
-	}
-
-	return nil
 }
 
 func (fs *FileStore) SaveBatchURL(ctx context.Context, data []storage.URLData) error {
@@ -151,4 +154,31 @@ func (fs *FileStore) SaveBatchURL(ctx context.Context, data []storage.URLData) e
 func (fs *FileStore) Ping(ctx context.Context) error {
 	//TODO implement me
 	return nil
+}
+
+func (fs *FileStore) isExistsURL(data storage.URLData) (bool, error) {
+	if _, err := os.Stat(fs.filePath); errors.Is(err, os.ErrNotExist) {
+		fs.log.Info("Error to open file", zp.Err(err))
+		return false, err
+	}
+	fdata, err := os.ReadFile(fs.filePath)
+	if err != nil {
+		fs.log.Info("Error to read file", zp.Err(err))
+		return false, err
+	}
+	splitData := bytes.Split(fdata, []byte("\n"))
+	for _, item := range splitData {
+		link := storage.URLData{}
+		if json.Valid(item) {
+			err = json.Unmarshal(item, &link)
+			if err != nil {
+				fs.log.Info("Error to Unmarshal file", zp.Err(err))
+				return false, err
+			}
+			if link.URL == data.URL {
+				return true, err
+			}
+		}
+	}
+	return false, err
 }

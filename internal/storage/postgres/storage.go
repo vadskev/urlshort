@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -59,8 +60,17 @@ func (d *DBStorage) GetURL(ctx context.Context, alias string) (storage.URLData, 
 
 func (d *DBStorage) SaveURL(ctx context.Context, data storage.URLData) error {
 	const op = "storage.postgres.SaveURL"
-	stmt := `INSERT INTO urls (url, alias, res_url) VALUES($1, $2, $3)`
-	_, err := d.db.Exec(ctx, stmt, data.URL, data.Alias, data.ResURL)
+	//stmt := `INSERT INTO urls (url, alias, res_url) VALUES($1, $2, $3)`
+	stmt := `INSERT INTO urls (url, alias, res_url)
+			VALUES ($1, $2, $3)
+			ON CONFLICT (url)
+			DO NOTHING RETURNING url;`
+
+	v, err := d.db.Exec(ctx, stmt, data.URL, data.Alias, data.ResURL)
+	if v.String() == "INSERT 0 0" {
+		return errors.New("url exists")
+	}
+
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
