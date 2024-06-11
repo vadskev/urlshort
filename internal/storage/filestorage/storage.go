@@ -125,6 +125,29 @@ func (fs *FileStore) SaveURL(ctx context.Context, data storage.URLData) error {
 	return nil
 }
 
+func (fs *FileStore) SaveBatchURL(ctx context.Context, data []storage.URLData) error {
+	file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			fs.log.Info("Error to close file", zp.Err(err))
+		}
+	}()
+	if err != nil {
+		fs.log.Info("Error to open file", zp.Err(err))
+		return err
+	}
+	encoder := json.NewEncoder(file)
+	for _, v := range data {
+		err = encoder.Encode(v)
+		if err != nil {
+			fs.log.Info("Error to encode file", zp.Err(err))
+			return err
+		}
+	}
+	return nil
+}
+
 func (fs *FileStore) Ping(ctx context.Context) error {
 	//TODO implement me
 	return nil

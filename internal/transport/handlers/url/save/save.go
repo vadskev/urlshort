@@ -17,9 +17,9 @@ import (
 )
 
 type Request struct {
-	Alias  string `json:"correlation_id"`
+	Alias  string `json:"alias,omitempty"`
 	ResURL string `json:"result,omitempty"`
-	URL    string `json:"original_url"`
+	URL    string `json:"url"`
 }
 
 type Response struct {
@@ -131,15 +131,13 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 			return
 		}
 
-		/*
-			// add to file store
-			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				log.Info("failed to add url store", zp.Err(err))
-				return
-			}
-		*/
+		// add to file store
+		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Info("failed to add url store", zp.Err(err))
+			return
+		}
 
 		// response OK
 		responseOK(w, r, req.ResURL)
