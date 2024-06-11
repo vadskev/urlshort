@@ -1,6 +1,7 @@
 package memstorage
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func TestMemStorage_SaveURL(t *testing.T) {
-	// TODO	add test
+	ctx := context.Background()
 	cfg := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       false,
@@ -33,7 +34,7 @@ func TestMemStorage_SaveURL(t *testing.T) {
 
 	store := NewMemStorage(log)
 
-	err := store.SaveURL(storage.URLData{
+	err := store.SaveURL(ctx, storage.URLData{
 		URL:    "https://ya.ru/",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
@@ -43,6 +44,7 @@ func TestMemStorage_SaveURL(t *testing.T) {
 }
 
 func TestMemStorage_GetURL(t *testing.T) {
+	ctx := context.Background()
 	cfg := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       false,
@@ -64,14 +66,14 @@ func TestMemStorage_GetURL(t *testing.T) {
 
 	store := NewMemStorage(log)
 
-	err := store.SaveURL(storage.URLData{
+	err := store.SaveURL(ctx, storage.URLData{
 		URL:    "https://ya.ru/",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
 	require.NoError(t, err)
 
-	tests, err := store.GetURL("sdfsdf")
+	tests, err := store.GetURL(ctx, "sdfsdf")
 	require.NoError(t, err)
 	assert.Equal(t, "sdfsdf", tests.Alias)
 }

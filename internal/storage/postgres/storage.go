@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vadskev/urlshort/internal/config"
+	"github.com/vadskev/urlshort/internal/lib/migrator"
 	"github.com/vadskev/urlshort/internal/storage"
 	"go.uber.org/zap"
 
@@ -31,13 +32,38 @@ func New(ctx context.Context, cfg *config.Config, log *zap.Logger) (*DBStorage, 
 	return &DBStorage{db: db, log: log}, nil
 }
 
-func (d *DBStorage) GetURL(alias string) (storage.URLData, error) {
-	//TODO implement me
-	return storage.URLData{}, nil
+func (d *DBStorage) Setup(cfg *config.Config) error {
+	const op = "storage.postgres.Setup"
+	err := migrator.Migrate(cfg)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
 }
 
-func (d *DBStorage) SaveURL(data storage.URLData) error {
-	//TODO implement me
+func (d *DBStorage) GetURL(ctx context.Context, alias string) (storage.URLData, error) {
+	const op = "storage.postgres.GetURL"
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	data := storage.URLData{}
+
+	if err := d.db.QueryRow(ctx, `SELECT url, alias, res_url FROM urls WHERE alias = $1`, alias).Scan(&data.URL, &data.Alias, &data.ResURL); err != nil {
+		fmt.Println("Error occur while finding user: ", err)
+		return storage.URLData{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return data, nil
+}
+
+func (d *DBStorage) SaveURL(ctx context.Context, data storage.URLData) error {
+	const op = "storage.postgres.SaveURL"
+	stmt := `INSERT INTO urls (url, alias, res_url) VALUES($1, $2, $3)`
+	_, err := d.db.Exec(ctx, stmt, data.URL, data.Alias, data.ResURL)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 	return nil
 }
 

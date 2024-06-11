@@ -37,7 +37,7 @@ func NewFileStorage(filePath string, logger *zap.Logger) *FileStore {
 	}
 }
 
-func (fs *FileStore) Get(ms storage.Storage) error {
+func (fs *FileStore) Get(ctx context.Context, ms storage.Storage) error {
 
 	if _, err := os.Stat(fs.filePath); errors.Is(err, os.ErrNotExist) {
 		fs.log.Info("Error to open file", zp.Err(err))
@@ -59,7 +59,7 @@ func (fs *FileStore) Get(ms storage.Storage) error {
 				fs.log.Info("Error to Unmarshal file", zp.Err(err))
 				return err
 			}
-			err = ms.SaveURL(link)
+			err = ms.SaveURL(ctx, link)
 			if err != nil {
 				fs.log.Info("Error to save memory in file", zp.Err(err))
 				return err
@@ -70,7 +70,7 @@ func (fs *FileStore) Get(ms storage.Storage) error {
 	return nil
 }
 
-func (fs *FileStore) GetURL(alias string) (storage.URLData, error) {
+func (fs *FileStore) GetURL(ctx context.Context, alias string) (storage.URLData, error) {
 	file, err := os.OpenFile(fs.filePath, os.O_RDONLY|os.O_CREATE|os.O_APPEND, 0774)
 	defer func() {
 		err = file.Close()
@@ -103,7 +103,7 @@ func (fs *FileStore) GetURL(alias string) (storage.URLData, error) {
 	return storage.URLData{}, nil
 }
 
-func (fs *FileStore) SaveURL(data storage.URLData) error {
+func (fs *FileStore) SaveURL(ctx context.Context, data storage.URLData) error {
 	file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
 	defer func() {
 		err = file.Close()

@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 )
 
 func TestServeHTTP(t *testing.T) {
+	ctx := context.Background()
 	tests := []struct {
 		name          string
 		query         string
@@ -76,11 +78,11 @@ func TestServeHTTP(t *testing.T) {
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
-	_ = filestore.Get(store)
+	_ = filestore.Get(ctx, store)
 
 	router := chi.NewRouter()
 	router.Route("/", func(r chi.Router) {
-		r.Post("/", New(log, conf, store, filestore))
+		r.Post("/", New(log, conf, store))
 	})
 
 	ts := httptest.NewServer(router)
@@ -108,6 +110,7 @@ func TestServeHTTP(t *testing.T) {
 }
 
 func Test_JSON_ServeHTTP(t *testing.T) {
+	ctx := context.Background()
 	tests := []struct {
 		name          string
 		query         string
@@ -164,11 +167,11 @@ func Test_JSON_ServeHTTP(t *testing.T) {
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
-	_ = filestore.Get(store)
+	_ = filestore.Get(ctx, store)
 
 	router := chi.NewRouter()
 	router.Route("/api/shorten", func(r chi.Router) {
-		r.Post("/", NewJSON(log, conf, store, filestore))
+		r.Post("/", NewJSON(log, conf, store))
 	})
 
 	ts := httptest.NewServer(router)

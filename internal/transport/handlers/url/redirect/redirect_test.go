@@ -1,6 +1,7 @@
 package redirect
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -21,6 +22,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	ctx := context.Background()
 	tests := []struct {
 		name          string
 		query         string
@@ -84,11 +86,11 @@ func TestNew(t *testing.T) {
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
-	_ = filestore.Get(store)
+	_ = filestore.Get(ctx, store)
 
 	router := chi.NewRouter()
 	router.Route("/api/shorten", func(r chi.Router) {
-		r.Post("/", save.NewJSON(log, conf, store, filestore))
+		r.Post("/", save.NewJSON(log, conf, store))
 	})
 
 	// add url router json

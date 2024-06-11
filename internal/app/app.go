@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/vadskev/urlshort/internal/config"
 	"github.com/vadskev/urlshort/internal/lib/logger/zp"
+	"github.com/vadskev/urlshort/internal/storage"
 	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 	"github.com/vadskev/urlshort/internal/storage/postgres"
@@ -29,22 +30,35 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	)
 
 	// init storage
-	store := memstorage.NewMemStorage(log)
+	var stor storage.Storage
 
-	// init file storage
-	filestore := filestorage.NewFileStorage(cfg.Storage.FileStoragePath, log)
-	err := filestore.Get(store)
-	if err != nil {
-		log.Info("Error get file store", zp.Err(err))
-	}
+	switch {
+	case cfg.DataBase.DatabaseDSN != "":
+		// init postgresql storage
+		dbstore, err := postgres.New(ctx, cfg, log)
+		if err != nil {
+			log.Info("Failed to init storage", zp.Err(err))
+			return fmt.Errorf("%s: %w", op, err)
+		}
+		err = dbstore.Setup(cfg)
+		if err != nil {
+			log.Info("Failed to migrate", zp.Err(err))
+		}
+		stor = dbstore
+		defer dbstore.CloseStorage()
+	case cfg.Storage.FileStoragePath != "":
+	default:
+		// init mem storage
+		memstore := memstorage.NewMemStorage(log)
 
-	// init postgresql storage
-	dbstore, err := postgres.New(ctx, cfg, log)
-	if err != nil {
-		log.Info("Failed to init storage", zp.Err(err))
-		return fmt.Errorf("%s: %w", op, err)
+		// init file storage
+		filestore := filestorage.NewFileStorage(cfg.Storage.FileStoragePath, log)
+		err := filestore.Get(ctx, memstore)
+		if err != nil {
+			log.Info("Error get file store", zp.Err(err))
+		}
+		stor = memstore
 	}
-	defer dbstore.CloseStorage()
 
 	/**/
 
@@ -59,25 +73,25 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 
 	// add url router
 	router.Route("/", func(r chi.Router) {
-		r.Post("/", save.New(log, cfg, store, filestore))
+		r.Post("/", save.New(log, cfg, stor))
 	})
 
 	// add url router json
 	router.Route("/api/shorten", func(r chi.Router) {
-		r.Post("/", save.NewJSON(log, cfg, store, filestore))
+		r.Post("/", save.NewJSON(log, cfg, stor))
 	})
 
 	// add response router
 	router.Route("/{code}", func(r chi.Router) {
-		r.Get("/", redirect.New(log, store))
+		r.Get("/", redirect.New(log, stor))
 	})
 
 	// add ping router
 	router.Route("/ping", func(r chi.Router) {
-		r.Get("/", ping.New(log, dbstore))
+		r.Get("/", ping.New(log, stor))
 	})
 
-	err = http.ListenAndServe(cfg.ServerAddress, router)
+	err := http.ListenAndServe(cfg.ServerAddress, router)
 	if err != nil {
 		log.Info("Failed to start server")
 	}

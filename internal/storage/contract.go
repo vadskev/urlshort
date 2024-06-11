@@ -3,8 +3,8 @@ package storage
 import "context"
 
 type Storage interface {
-	GetURL(alias string) (URLData, error)
-	SaveURL(data URLData) error
+	GetURL(ctx context.Context, alias string) (URLData, error)
+	SaveURL(ctx context.Context, data URLData) error
 	Ping(ctx context.Context) error
 }
 
