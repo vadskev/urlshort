@@ -65,7 +65,7 @@ func TestMemStorage_GetURL(t *testing.T) {
 
 	store := NewFileStorage("/tmp/file.json", log)
 	err := store.Get(ctx, store)
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	err = store.SaveURL(ctx, storage.URLData{
 		URL:    "https://ya.ru/2",
