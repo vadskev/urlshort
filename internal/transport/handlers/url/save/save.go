@@ -131,13 +131,15 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 			return
 		}
 
-		// add to file store
-		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url store", zp.Err(err))
-			return
-		}
+		/*
+			// add to file store
+			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				log.Info("failed to add url store", zp.Err(err))
+				return
+			}
+		*/
 
 		// response OK
 		responseOK(w, r, req.ResURL)
