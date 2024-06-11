@@ -27,20 +27,6 @@ func (s *MemStorage) SaveURL(ctx context.Context, data storage.URLData) error {
 	if _, ok := s.store.Load(data.Alias); ok {
 		return errors.New("url exists")
 	}
-
-	isExists := false
-	s.store.Range(func(key, value interface{}) bool {
-		v := value.(storage.URLData)
-		if v.URL == data.URL {
-			isExists = true
-			return false
-		}
-		return true
-	})
-	if isExists {
-		return errors.New("url exists")
-	}
-
 	s.store.Store(data.Alias, data)
 	s.log.Info("added to storage")
 	return nil
@@ -69,4 +55,23 @@ func (s *MemStorage) GetURL(ctx context.Context, alias string) (storage.URLData,
 func (s *MemStorage) Ping(ctx context.Context) error {
 	//TODO implement me
 	return nil
+}
+
+func (s *MemStorage) GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool) {
+	isExists := false
+	var link = storage.URLData{}
+	s.store.Range(func(key, value interface{}) bool {
+		v := value.(storage.URLData)
+		if v.URL == url {
+			isExists = true
+			link = v
+			return false
+		}
+		return true
+	})
+
+	if isExists {
+		return link, true
+	}
+	return storage.URLData{}, false
 }

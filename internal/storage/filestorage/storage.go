@@ -103,29 +103,24 @@ func (fs *FileStore) GetURL(ctx context.Context, alias string) (storage.URLData,
 }
 
 func (fs *FileStore) SaveURL(ctx context.Context, data storage.URLData) error {
-	isExistsURL, _ := fs.isExistsURL(data)
-	if !isExistsURL {
-		file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
-		defer func() {
-			err = file.Close()
-			if err != nil {
-				fs.log.Info("Error to close file", zp.Err(err))
-			}
-		}()
+	file, err := os.OpenFile(fs.filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0774)
+	defer func() {
+		err = file.Close()
 		if err != nil {
-			fs.log.Info("Error to open file", zp.Err(err))
-			return err
+			fs.log.Info("Error to close file", zp.Err(err))
 		}
-		encoder := json.NewEncoder(file)
-		err = encoder.Encode(data)
-		if err != nil {
-			fs.log.Info("Error to encode file", zp.Err(err))
-			return err
-		}
-		return nil
-	} else {
-		return errors.New("url exists")
+	}()
+	if err != nil {
+		fs.log.Info("Error to open file", zp.Err(err))
+		return err
 	}
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(data)
+	if err != nil {
+		fs.log.Info("Error to encode file", zp.Err(err))
+		return err
+	}
+	return nil
 }
 
 func (fs *FileStore) SaveBatchURL(ctx context.Context, data []storage.URLData) error {
@@ -156,15 +151,15 @@ func (fs *FileStore) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (fs *FileStore) isExistsURL(data storage.URLData) (bool, error) {
+func (fs *FileStore) GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool) {
 	if _, err := os.Stat(fs.filePath); errors.Is(err, os.ErrNotExist) {
 		fs.log.Info("Error to open file", zp.Err(err))
-		return false, err
+		return storage.URLData{}, false
 	}
 	fdata, err := os.ReadFile(fs.filePath)
 	if err != nil {
 		fs.log.Info("Error to read file", zp.Err(err))
-		return false, err
+		return storage.URLData{}, false
 	}
 	splitData := bytes.Split(fdata, []byte("\n"))
 	for _, item := range splitData {
@@ -173,12 +168,12 @@ func (fs *FileStore) isExistsURL(data storage.URLData) (bool, error) {
 			err = json.Unmarshal(item, &link)
 			if err != nil {
 				fs.log.Info("Error to Unmarshal file", zp.Err(err))
-				return false, err
+				return storage.URLData{}, false
 			}
-			if link.URL == data.URL {
-				return true, err
+			if link.URL == url {
+				return link, true
 			}
 		}
 	}
-	return false, err
+	return storage.URLData{}, false
 }
