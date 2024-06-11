@@ -38,7 +38,7 @@ func MustLoad() *Config {
 
 	cfg.ServerAddress = defaultServerAddress
 	cfg.BaseURL = defaultBaseURL
-	cfg.Storage.FileStoragePath = defaultStoragePath
+	//cfg.Storage.FileStoragePath = defaultStoragePath
 	cfg.LogLevel = defaultLogLevel
 	//cfg.DataBase.DatabaseDSN = defaultDatabaseDSN
 

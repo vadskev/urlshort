@@ -130,10 +130,11 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 				w.WriteHeader(http.StatusConflict)
 				log.Info("Status url exists", zp.Err(err))
 				return
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				log.Info("failed to add url", zp.Err(err))
+				return
 			}
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url", zp.Err(err))
-			return
 		}
 
 		// response OK
