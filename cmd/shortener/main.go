@@ -37,6 +37,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
+
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(400)
@@ -49,8 +50,7 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 
 // handlerGet
 func handlerGet(w http.ResponseWriter, r *http.Request) {
-	shortURL := r.URL.String()[1:]
-
+	shortURL := chi.URLParam(r, "code")
 	if value, ok := urlDBase[shortURL]; ok {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Location", value)
