@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,10 +30,11 @@ type Response struct {
 /**/
 
 type URLSaver interface {
-	SaveURL(data storage.URLData) error
+	SaveURL(ctx context.Context, data storage.URLData) error
+	GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool)
 }
 
-func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) http.HandlerFunc {
+func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get request
@@ -66,19 +68,22 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) h
 		// create url
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
-		// add to store
-		err = store.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url store", zp.Err(err))
+		// find exists url
+		findURL, isExists := store.GetURLbyURL(r.Context(), req.URL)
+
+		if isExists {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			log.Info("exists url, no add to store")
+			_, err = w.Write([]byte(findURL.ResURL))
 			return
 		}
 
-		// add to file store
-		err = fstore.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		// add to store
+		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url fstore", zp.Err(err))
+			log.Info("failed to add url store", zp.Err(err))
 			return
 		}
 
@@ -95,7 +100,7 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) h
 	}
 }
 
-func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) http.HandlerFunc {
+func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Request
 
@@ -120,19 +125,19 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSave
 		// create url
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
-		// add to store
-		err = store.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url", zp.Err(err))
+		// find exists url
+		findURL, isExists := store.GetURLbyURL(r.Context(), req.URL)
+		if isExists {
+			responseConflict(w, r, findURL.ResURL)
+			log.Info("Status url exists")
 			return
 		}
 
-		// add to file store
-		err = fstore.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		// add to store
+		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url fstore", zp.Err(err))
+			log.Info("failed to add url", zp.Err(err))
 			return
 		}
 
@@ -144,6 +149,14 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSave
 func responseOK(w http.ResponseWriter, r *http.Request, result string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	render.JSON(w, r, Response{
+		Result: result,
+	})
+}
+
+func responseConflict(w http.ResponseWriter, r *http.Request, result string) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusConflict)
 	render.JSON(w, r, Response{
 		Result: result,
 	})

@@ -1,6 +1,7 @@
 package filestorage
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 )
 
 func TestMemStorage_SaveURL(t *testing.T) {
+	ctx := context.Background()
 	cfg := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       false,
@@ -31,8 +33,8 @@ func TestMemStorage_SaveURL(t *testing.T) {
 
 	store := NewFileStorage("/tmp/file.json", log)
 
-	err := store.SaveURL(storage.URLData{
-		URL:    "https://ya.ru/",
+	err := store.SaveURL(ctx, storage.URLData{
+		URL:    "https://ya.ru/4",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
@@ -41,6 +43,7 @@ func TestMemStorage_SaveURL(t *testing.T) {
 }
 
 func TestMemStorage_GetURL(t *testing.T) {
+	ctx := context.Background()
 	cfg := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       false,
@@ -61,17 +64,17 @@ func TestMemStorage_GetURL(t *testing.T) {
 	log := zap.Must(cfg.Build())
 
 	store := NewFileStorage("/tmp/file.json", log)
-	err := store.Get(store)
+	err := store.Get(ctx, store)
 	require.NoError(t, err)
 
-	err = store.SaveURL(storage.URLData{
-		URL:    "https://ya.ru/",
+	err = store.SaveURL(ctx, storage.URLData{
+		URL:    "https://ya.ru/2",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
 	require.NoError(t, err)
 
-	_, err = store.GetURL("sdfsdf")
+	_, err = store.GetURL(ctx, "sdfsdf")
 	require.NoError(t, err)
 }
 
