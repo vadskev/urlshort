@@ -37,7 +37,6 @@ func handlerPost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-
 	} else {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(400)
