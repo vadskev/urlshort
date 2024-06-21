@@ -13,8 +13,9 @@ func TestLoad(t *testing.T) {
 		{
 			name: "Test",
 			want: &Config{
-				Server:  "localhost:8080",
-				BaseURL: "http://localhost:8080",
+				Server:   "localhost:8080",
+				BaseURL:  "http://localhost:8080",
+				LogLevel: "info",
 			},
 		},
 	}

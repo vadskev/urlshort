@@ -25,11 +25,6 @@ type URLStore interface {
 
 func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, ErrMethodRequest.Error(), http.StatusBadRequest)
-			return
-		}
-
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, ErrReadRequest.Error(), http.StatusBadRequest)
