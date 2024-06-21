@@ -1,20 +1,20 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/vadskev/urlshort/config"
 	"github.com/vadskev/urlshort/internal/routers"
+	"github.com/vadskev/urlshort/internal/storage/memstorage"
 )
 
 func main() {
-	cfg := config.InitConfig()
-	cfg.ParseFlags()
+	cfg := config.Load()
+	store := memstorage.New()
 
-	config := config.GetConfig()
-
-	err := http.ListenAndServe(config.HostServer, routers.Router())
+	err := http.ListenAndServe(cfg.Server, routers.NewRouter(cfg, store))
 	if err != nil {
-		panic(err)
+		log.Fatal("Failed to start server")
 	}
 }

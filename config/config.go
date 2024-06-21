@@ -1,24 +1,38 @@
 package config
 
+import (
+	"flag"
+	"os"
+)
+
 const (
-	defaultHostServer = "localhost:8080"
+	defaultServer  = "localhost:8080"
+	defaultBaseURL = "http://localhost:8080"
 )
 
 type Config struct {
-	HostServer   string
-	BaseURLShort string
+	Server  string
+	BaseURL string
 }
 
-var config Config
-
-func InitConfig() *Config {
-	config = Config{
-		HostServer:   defaultHostServer,
-		BaseURLShort: "",
+func Load() *Config {
+	cfg := &Config{
+		Server:  defaultServer,
+		BaseURL: defaultBaseURL,
 	}
-	return &config
-}
 
-func GetConfig() *Config {
-	return &config
+	// get env
+	if envBaseURLShortener := os.Getenv("SERVER_ADDRESS"); envBaseURLShortener != "" {
+		cfg.Server = envBaseURLShortener
+	}
+	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
+		cfg.BaseURL = envBaseURL
+	}
+
+	// get flag
+	flag.StringVar(&cfg.Server, "a", "localhost:8080", "server address; example: -a localhost:8080")
+	flag.StringVar(&cfg.BaseURL, "b", "http://localhost:8080", "short url base; example: -b https://yandex.ru")
+	flag.Parse()
+
+	return cfg
 }
