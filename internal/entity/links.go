@@ -7,8 +7,8 @@ var (
 	ErrSlugExists = errors.New("slug already exists")
 )
 
-// Links
+//easyjson:json
 type Links struct {
-	RawURL string
-	Slug   string
+	RawURL string `json:"url"`
+	Slug   string `json:"result,omitempty"`
 }
