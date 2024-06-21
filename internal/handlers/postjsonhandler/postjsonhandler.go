@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/vadskev/urlshort/config"
@@ -65,7 +66,7 @@ func New(cfg *config.Config, store URLStore) http.HandlerFunc {
 		}
 
 		res.URL = cfg.BaseURL + "/" + shortCode
-
+		log.Println(res.URL)
 		resp, err := json.Marshal(res)
 		if err != nil {
 			http.Error(w, ErrFailedResponse.Error(), http.StatusInternalServerError)
