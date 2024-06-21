@@ -1,28 +1,51 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"os"
 
-	"github.com/vadskev/urlshort/config"
-	"github.com/vadskev/urlshort/internal/logger"
-	"github.com/vadskev/urlshort/internal/routers"
-	"github.com/vadskev/urlshort/internal/storage/memstorage"
+	"github.com/vadskev/urlshort/internal/app"
+	"github.com/vadskev/urlshort/internal/config"
+	"github.com/vadskev/urlshort/internal/lib/logger/zp"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
-	cfg := config.Load()
-	store := memstorage.New()
 
-	if err := logger.New(cfg.LogLevel); err != nil {
-		log.Fatal("Error logger")
+	// init config
+	cfg := config.MustLoad()
+
+	// init logger
+	log := setupLogger()
+
+	if err := app.RunServer(log, cfg); err != nil {
+		log.Info("error to start server", zp.Err(err))
+	} else {
+		log.Info("server was shutdown")
 	}
+}
 
-	logger.Log.Info("Running server", zap.String("address", cfg.Server))
+func setupLogger() *zap.Logger {
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeTime = zapcore.RFC3339TimeEncoder
 
-	err := http.ListenAndServe(cfg.Server, routers.NewRouter(cfg, store))
-	if err != nil {
-		logger.Log.Info("Failed to start server")
+	cfg := zap.Config{
+		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development:       false,
+		DisableCaller:     false,
+		DisableStacktrace: false,
+		Sampling:          nil,
+		Encoding:          "json",
+		EncoderConfig:     encoderCfg,
+		OutputPaths: []string{
+			"stderr",
+		},
+		ErrorOutputPaths: []string{
+			"stderr",
+		},
+		InitialFields: map[string]interface{}{
+			"pid": os.Getpid(),
+		},
 	}
+	return zap.Must(cfg.Build())
 }
