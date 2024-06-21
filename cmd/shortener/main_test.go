@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/vadskev/urlshort/internal/handlers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestHandlerPost(t *testing.T) {
-	urlDBase = make(map[string]string)
+
 	type expected struct {
 		statusCode int
 	}
@@ -47,7 +48,7 @@ func TestHandlerPost(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/", body)
 			w := httptest.NewRecorder()
 
-			handlerPost(w, req)
+			handlers.HandlerPost(w, req)
 			res := w.Result()
 
 			defer res.Body.Close()
@@ -98,7 +99,7 @@ func TestHandlerGet12(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, test.url, nil)
 			w := httptest.NewRecorder()
 
-			handlerGet(w, req)
+			handlers.HandlerGet(w, req)
 			res := w.Result()
 
 			defer res.Body.Close()
