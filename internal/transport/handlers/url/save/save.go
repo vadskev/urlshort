@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,10 +30,10 @@ type Response struct {
 /**/
 
 type URLSaver interface {
-	SaveURL(data storage.URLData) error
+	SaveURL(ctx context.Context, data storage.URLData) error
 }
 
-func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) http.HandlerFunc {
+func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// get request
@@ -67,20 +68,22 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) h
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
 		// add to store
-		err = store.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Info("failed to add url store", zp.Err(err))
 			return
 		}
 
-		// add to file store
-		err = fstore.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url fstore", zp.Err(err))
-			return
-		}
+		/*
+			// add to file store
+			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				log.Info("failed to add url store", zp.Err(err))
+				return
+			}
+		*/
 
 		// response OK
 		w.Header().Set("content-type", "text/plain")
@@ -95,7 +98,7 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) h
 	}
 }
 
-func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSaver) http.HandlerFunc {
+func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req Request
 
@@ -121,20 +124,22 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver, fstore URLSave
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
 		// add to store
-		err = store.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Info("failed to add url", zp.Err(err))
 			return
 		}
 
-		// add to file store
-		err = fstore.SaveURL(storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url fstore", zp.Err(err))
-			return
-		}
+		/*
+			// add to file store
+			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				log.Info("failed to add url store", zp.Err(err))
+				return
+			}
+		*/
 
 		// response OK
 		responseOK(w, r, req.ResURL)

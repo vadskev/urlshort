@@ -1,6 +1,7 @@
 package redirect
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/vadskev/urlshort/internal/config"
+	"github.com/vadskev/urlshort/internal/storage"
 	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/save"
@@ -21,6 +23,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	ctx := context.Background()
 	tests := []struct {
 		name          string
 		query         string
@@ -79,16 +82,19 @@ func TestNew(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	//
+	var stor storage.Storage
+
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
 	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
-	_ = filestore.Get(store)
+	_ = filestore.Get(ctx, store)
+
+	stor = filestore
 
 	router := chi.NewRouter()
 	router.Route("/api/shorten", func(r chi.Router) {
-		r.Post("/", save.NewJSON(log, conf, store, filestore))
+		r.Post("/", save.NewJSON(log, conf, stor))
 	})
 
 	// add url router json
