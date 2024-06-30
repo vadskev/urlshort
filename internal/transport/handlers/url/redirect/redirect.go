@@ -1,6 +1,7 @@
 package redirect
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,7 +11,7 @@ import (
 )
 
 type URLGetter interface {
-	GetURL(alias string) (storage.URLData, error)
+	GetURL(ctx context.Context, alias string) (storage.URLData, error)
 }
 
 func New(log *zap.Logger, urlGetter URLGetter) http.HandlerFunc {
@@ -24,7 +25,7 @@ func New(log *zap.Logger, urlGetter URLGetter) http.HandlerFunc {
 		}
 
 		//get from store
-		res, err := urlGetter.GetURL(alias)
+		res, err := urlGetter.GetURL(r.Context(), alias)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			log.Info("alias is empty", zp.Err(err))
