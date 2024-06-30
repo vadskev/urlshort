@@ -1,0 +1,18 @@
+version: '3'
+
+volumes:
+  postgres_volume:
+
+services:
+  postgresql:
+    image: postgres:16.2-alpine3.19
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+    environment:
+      - "POSTGRES_DB=urlshort_db"
+      - "POSTGRES_USER=urlshort"
+      - "POSTGRES_PASSWORD=urlshort"
+    ports:
+      - "5432:5432"
+    command:
+      -p 5432
