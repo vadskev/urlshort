@@ -35,8 +35,7 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 
 	log.Info("log cfg", zap.Any("cfg:", cfg))
 
-	switch {
-	case cfg.DataBase.DatabaseDSN != "":
+	if cfg.DataBase.DatabaseDSN != "" {
 		// init postgresql storage
 		dbstore, err := postgres.New(ctx, cfg, log)
 		if err != nil {
@@ -46,10 +45,12 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 		err = dbstore.Setup(cfg)
 		if err != nil {
 			log.Info("Failed to migrate", zp.Err(err))
+			dbstore.CloseStorage()
+			return err
 		}
 		stor = dbstore
 		defer dbstore.CloseStorage()
-	default:
+	} else {
 		// init mem storage
 		memstore := memstorage.NewMemStorage(log)
 
