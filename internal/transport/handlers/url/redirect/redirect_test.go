@@ -87,7 +87,7 @@ func TestNew(t *testing.T) {
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
-	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
+	filestore, _ := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
 	_ = filestore.Get(ctx, store)
 
 	stor = filestore

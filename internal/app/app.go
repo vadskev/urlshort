@@ -57,6 +57,10 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 		if cfg.Storage.FileStoragePath != "" {
 			// init file storage
 			filestore, err := filestorage.NewFileStorage(cfg.Storage.FileStoragePath, log)
+			if err != nil {
+				log.Info("Error create file store", zp.Err(err))
+			}
+
 			err = filestore.Get(ctx, memstore)
 			if err != nil {
 				log.Info("Error get file store", zp.Err(err))
