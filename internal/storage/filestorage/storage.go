@@ -21,7 +21,7 @@ type FileStore struct {
 
 var _ storage.Storage = (*FileStore)(nil)
 
-func NewFileStorage(filePath string, logger *zap.Logger) *FileStore {
+func NewFileStorage(filePath string, logger *zap.Logger) (*FileStore, error) {
 	fileName := filepath.FromSlash(filePath)
 	directory, _ := filepath.Split(fileName)
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
@@ -34,7 +34,7 @@ func NewFileStorage(filePath string, logger *zap.Logger) *FileStore {
 	return &FileStore{
 		filePath: filePath,
 		log:      logger,
-	}
+	}, nil
 }
 
 func (fs *FileStore) Get(ctx context.Context, ms storage.Storage) error {
