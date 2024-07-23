@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS urls
     UNIQUE (url)
 );
 CREATE INDEX IF NOT EXISTS idx_alias on urls(alias);
-CREATE INDEX IF NOT EXISTS idx_url on urls(alias);
 
 -- +goose Down
 drop table urls;
