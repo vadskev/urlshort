@@ -36,7 +36,7 @@ func TestServeHTTP(t *testing.T) {
 			name:          "Normal POST (should work)",
 			query:         "/",
 			method:        http.MethodPost,
-			statusWant:    http.StatusOK,
+			statusWant:    http.StatusCreated,
 			reqBody:       "https://practicum.yandex.ru/55",
 			wantEmptyBody: false,
 		},
