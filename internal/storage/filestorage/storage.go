@@ -28,8 +28,9 @@ func NewFileStorage(filePath string, logger *zap.Logger) (*FileStore, error) {
 		err = os.MkdirAll(directory, os.ModePerm)
 		if err != nil {
 			logger.Info("Error to create file", zp.Err(err))
-			//return nil, err
+			return nil, err
 		}
+		return nil, err
 	}
 	logger.Info("Create file", zap.String("patch", filepath.Dir(directory)))
 	return &FileStore{
