@@ -3,6 +3,7 @@ package save
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -103,6 +104,7 @@ func TestServeHTTP(t *testing.T) {
 		defer resp.Body.Close()
 
 		if resp.StatusCode == http.StatusCreated {
+			fmt.Println(resp.Body)
 			require.NotEmpty(t, resp.Body, tt.name)
 			response, err := io.ReadAll(resp.Body)
 			require.NoError(t, err, tt.name)
