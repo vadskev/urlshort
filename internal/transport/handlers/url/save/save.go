@@ -95,7 +95,7 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 
 		// response OK
 		w.Header().Set("content-type", "text/plain")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
