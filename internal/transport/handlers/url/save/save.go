@@ -87,6 +87,13 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 			return
 		}
 
+		_, err = w.Write([]byte(req.ResURL))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Info("failed to write response", zp.Err(err))
+			return
+		}
+
 		// response OK
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
