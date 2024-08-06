@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -8,6 +10,8 @@ import (
 	"github.com/vadskev/urlshort/internal/lib/logger/zp"
 	"github.com/vadskev/urlshort/internal/storage/filestorage"
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
+	"github.com/vadskev/urlshort/internal/storage/postgres"
+	"github.com/vadskev/urlshort/internal/transport/handlers/database/ping"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/redirect"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/save"
 	"github.com/vadskev/urlshort/internal/transport/middleware/compress"
@@ -16,6 +20,10 @@ import (
 )
 
 func RunServer(log *zap.Logger, cfg *config.Config) error {
+	const op = "internal.app.RunServer"
+
+	ctx := context.Background()
+
 	log.Info("Running server",
 		zap.String("address", cfg.ServerAddress),
 	)
@@ -29,6 +37,16 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	if err != nil {
 		log.Info("Error get file store", zp.Err(err))
 	}
+
+	// init postgresql storage
+	dbstore, err := postgres.New(ctx, cfg, log)
+	if err != nil {
+		log.Info("Failed to init storage", zp.Err(err))
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	defer dbstore.CloseStorage()
+
+	/**/
 
 	// init router
 	router := chi.NewRouter()
@@ -52,6 +70,11 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	// add response router
 	router.Route("/{code}", func(r chi.Router) {
 		r.Get("/", redirect.New(log, store))
+	})
+
+	// add ping router
+	router.Route("/ping", func(r chi.Router) {
+		r.Get("/", ping.New(log, dbstore))
 	})
 
 	err = http.ListenAndServe(cfg.ServerAddress, router)

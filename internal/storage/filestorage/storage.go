@@ -3,6 +3,7 @@ package filestorage
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -121,5 +122,10 @@ func (fs *FileStore) SaveURL(data storage.URLData) error {
 		return err
 	}
 
+	return nil
+}
+
+func (fs *FileStore) Ping(ctx context.Context) error {
+	//TODO implement me
 	return nil
 }

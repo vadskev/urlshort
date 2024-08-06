@@ -1,6 +1,7 @@
 package memstorage
 
 import (
+	"context"
 	"errors"
 	"sync"
 
@@ -38,4 +39,9 @@ func (s *MemStorage) GetURL(alias string) (storage.URLData, error) {
 	}
 	s.log.Info("return url storage")
 	return value.(storage.URLData), nil
+}
+
+func (s *MemStorage) Ping(ctx context.Context) error {
+	//TODO implement me
+	return nil
 }
