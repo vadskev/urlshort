@@ -126,20 +126,16 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 		// add to store
 		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			log.Info("failed to add url", zp.Err(err))
-			return
-		}
-
-		/*
-			// add to file store
-			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-			if err != nil {
+			if err.Error() == "url exists" {
+				w.WriteHeader(http.StatusConflict)
+				log.Info("Status url exists", zp.Err(err))
+				return
+			} else {
 				w.WriteHeader(http.StatusBadRequest)
-				log.Info("failed to add url store", zp.Err(err))
+				log.Info("failed to add url", zp.Err(err))
 				return
 			}
-		*/
+		}
 
 		// response OK
 		responseOK(w, r, req.ResURL)

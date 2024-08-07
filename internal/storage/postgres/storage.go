@@ -79,6 +79,35 @@ func (d *DBStorage) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (d *DBStorage) SaveBatchURL(ctx context.Context, data []storage.URLData) error {
+	const op = "storage.postgres.SaveBatchURL"
+
+	tx, err := d.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	d.log.Info("Begin transaction")
+
+	for _, v := range data {
+		_, err = tx.Exec(ctx, `INSERT INTO urls (url, alias, res_url) VALUES($1, $2, $3)`, v.URL, v.Alias, v.ResURL)
+		if err != nil {
+			if err = tx.Rollback(ctx); err != nil {
+				return fmt.Errorf("%s: %w", op, err)
+			}
+			return fmt.Errorf("%s: %w", op, err)
+		}
+	}
+
+	d.log.Info("Commit transaction")
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
 func (d *DBStorage) CloseStorage() {
 	d.db.Close()
 }

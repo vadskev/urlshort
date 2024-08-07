@@ -49,7 +49,6 @@ func MustLoad() *Config {
 		flag.StringVar(&cfg.Storage.FileStoragePath, "f", "/tmp/short-url-db.json", "file storage path; example: -f /tmp/short-url-db.json")
 		flag.StringVar(&cfg.DataBase.DatabaseDSN, "d", "host=localhost port=5432 dbname=urlshort_db user=urlshort password=urlshort sslmode=disable", "database connect dns string; example: -d host=localhost port=5432 dbname=NAME user=USER password=PASSWORD sslmode=disable")
 	*/
-
 	flag.StringVar(&cfg.Storage.FileStoragePath, "f", "", "file storage path; example: -f /tmp/short-url-db.json")
 	flag.StringVar(&cfg.DataBase.DatabaseDSN, "d", "", "database connect dns string; example: -d host=localhost port=5432 dbname=NAME user=USER password=PASSWORD sslmode=disable")
 

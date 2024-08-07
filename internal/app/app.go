@@ -13,6 +13,7 @@ import (
 	"github.com/vadskev/urlshort/internal/storage/memstorage"
 	"github.com/vadskev/urlshort/internal/storage/postgres"
 	"github.com/vadskev/urlshort/internal/transport/handlers/database/ping"
+	"github.com/vadskev/urlshort/internal/transport/handlers/url/batch"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/redirect"
 	"github.com/vadskev/urlshort/internal/transport/handlers/url/save"
 	"github.com/vadskev/urlshort/internal/transport/middleware/compress"
@@ -94,6 +95,11 @@ func RunServer(log *zap.Logger, cfg *config.Config) error {
 	// add ping router
 	router.Route("/ping", func(r chi.Router) {
 		r.Get("/", ping.New(log, stor))
+	})
+
+	// add batch router
+	router.Route("/api/shorten/batch", func(r chi.Router) {
+		r.Post("/", batch.New(log, cfg, stor))
 	})
 
 	err := http.ListenAndServe(cfg.ServerAddress, router)
