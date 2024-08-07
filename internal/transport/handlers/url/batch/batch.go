@@ -52,7 +52,7 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 			req[k].ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, v.Alias)
 		}
 
-		var data []storage.URLData
+		data := make([]storage.URLData, 0, len(req))
 		for _, v := range req {
 			data = append(data, storage.URLData{
 				Alias:  v.Alias,

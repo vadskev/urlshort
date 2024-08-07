@@ -3,6 +3,7 @@ package save
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -36,7 +37,7 @@ func TestServeHTTP(t *testing.T) {
 			query:         "/",
 			method:        http.MethodPost,
 			statusWant:    http.StatusCreated,
-			reqBody:       "https://practicum.yandex.ru",
+			reqBody:       "https://practicum.yandex.ru/55",
 			wantEmptyBody: false,
 		},
 	}
@@ -79,7 +80,7 @@ func TestServeHTTP(t *testing.T) {
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
-	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
+	filestore, _ := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
 	_ = filestore.Get(ctx, store)
 
 	stor = filestore
@@ -103,6 +104,7 @@ func TestServeHTTP(t *testing.T) {
 		defer resp.Body.Close()
 
 		if resp.StatusCode == http.StatusCreated {
+			fmt.Println(resp.Body)
 			require.NotEmpty(t, resp.Body, tt.name)
 			response, err := io.ReadAll(resp.Body)
 			require.NoError(t, err, tt.name)
@@ -128,7 +130,7 @@ func Test_JSON_ServeHTTP(t *testing.T) {
 			query:         "/api/shorten",
 			method:        http.MethodPost,
 			statusWant:    http.StatusCreated,
-			reqBody:       "{\"url\":\"https://practicum.yandex.ru\"}",
+			reqBody:       "{\"url\":\"https://practicum.yandex.su\"}",
 			wantEmptyBody: false,
 		},
 	}
@@ -170,7 +172,7 @@ func Test_JSON_ServeHTTP(t *testing.T) {
 	// init storage
 	store := memstorage.NewMemStorage(log)
 
-	filestore := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
+	filestore, _ := filestorage.NewFileStorage(conf.Storage.FileStoragePath, log)
 	_ = filestore.Get(ctx, store)
 
 	stor = filestore

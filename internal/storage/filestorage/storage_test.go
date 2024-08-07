@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/vadskev/urlshort/internal/lib/logger/zp"
 	"github.com/vadskev/urlshort/internal/storage"
 	"go.uber.org/zap"
 )
@@ -31,10 +32,13 @@ func TestMemStorage_SaveURL(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	store := NewFileStorage("/tmp/file.json", log)
+	store, err := NewFileStorage("/tmp/file.json", log)
+	if err != nil {
+		log.Info("Error create file store", zp.Err(err))
+	}
 
-	err := store.SaveURL(ctx, storage.URLData{
-		URL:    "https://ya.ru/",
+	err = store.SaveURL(ctx, storage.URLData{
+		URL:    "https://ya.ru/4",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
@@ -63,12 +67,16 @@ func TestMemStorage_GetURL(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	store := NewFileStorage("/tmp/file.json", log)
-	err := store.Get(ctx, store)
+	store, err := NewFileStorage("/tmp/file.json", log)
+	if err != nil {
+		log.Info("Error create file store", zp.Err(err))
+	}
+
+	err = store.Get(ctx, store)
 	require.NoError(t, err)
 
 	err = store.SaveURL(ctx, storage.URLData{
-		URL:    "https://ya.ru/",
+		URL:    "https://ya.ru/2",
 		ResURL: "https://ya.ru/sdfsdf",
 		Alias:  "sdfsdf",
 	})
@@ -98,6 +106,6 @@ func TestNew(t *testing.T) {
 	}
 	log := zap.Must(cfg.Build())
 
-	store := NewFileStorage("/tmp/file.json", log)
+	store, _ := NewFileStorage("/tmp/file.json", log)
 	require.NotNil(t, store)
 }

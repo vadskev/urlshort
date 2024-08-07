@@ -31,6 +31,7 @@ type Response struct {
 
 type URLSaver interface {
 	SaveURL(ctx context.Context, data storage.URLData) error
+	GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool)
 }
 
 func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
@@ -67,6 +68,17 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 		// create url
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
+		// find exists url
+		findURL, isExists := store.GetURLbyURL(r.Context(), req.URL)
+
+		if isExists {
+			w.Header().Set("content-type", "text/plain")
+			w.WriteHeader(http.StatusConflict)
+			log.Info("exists url, no add to store")
+			_, err = w.Write([]byte(findURL.ResURL))
+			return
+		}
+
 		// add to store
 		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
@@ -75,23 +87,12 @@ func New(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFunc {
 			return
 		}
 
-		/*
-			// add to file store
-			err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				log.Info("failed to add url store", zp.Err(err))
-				return
-			}
-		*/
-
 		// response OK
 		w.Header().Set("content-type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 
 		_, err = w.Write([]byte(req.ResURL))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
 			log.Info("failed to write response", zp.Err(err))
 			return
 		}
@@ -123,18 +124,20 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 		// create url
 		req.ResURL = fmt.Sprintf("%s/%s", cfg.BaseURL, req.Alias)
 
+		// find exists url
+		findURL, isExists := store.GetURLbyURL(r.Context(), req.URL)
+		if isExists {
+			responseConflict(w, r, findURL.ResURL)
+			log.Info("Status url exists")
+			return
+		}
+
 		// add to store
 		err = store.SaveURL(r.Context(), storage.URLData{URL: req.URL, ResURL: req.ResURL, Alias: req.Alias})
 		if err != nil {
-			if err.Error() == "url exists" {
-				w.WriteHeader(http.StatusConflict)
-				log.Info("Status url exists", zp.Err(err))
-				return
-			} else {
-				w.WriteHeader(http.StatusBadRequest)
-				log.Info("failed to add url", zp.Err(err))
-				return
-			}
+			w.WriteHeader(http.StatusBadRequest)
+			log.Info("failed to add url", zp.Err(err))
+			return
 		}
 
 		// response OK
@@ -145,6 +148,14 @@ func NewJSON(log *zap.Logger, cfg *config.Config, store URLSaver) http.HandlerFu
 func responseOK(w http.ResponseWriter, r *http.Request, result string) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	render.JSON(w, r, Response{
+		Result: result,
+	})
+}
+
+func responseConflict(w http.ResponseWriter, r *http.Request, result string) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusConflict)
 	render.JSON(w, r, Response{
 		Result: result,
 	})

@@ -60,6 +60,7 @@ func (d *DBStorage) GetURL(ctx context.Context, alias string) (storage.URLData, 
 func (d *DBStorage) SaveURL(ctx context.Context, data storage.URLData) error {
 	const op = "storage.postgres.SaveURL"
 	stmt := `INSERT INTO urls (url, alias, res_url) VALUES($1, $2, $3)`
+
 	_, err := d.db.Exec(ctx, stmt, data.URL, data.Alias, data.ResURL)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -110,4 +111,18 @@ func (d *DBStorage) SaveBatchURL(ctx context.Context, data []storage.URLData) er
 
 func (d *DBStorage) CloseStorage() {
 	d.db.Close()
+}
+
+func (d *DBStorage) GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	data := storage.URLData{}
+
+	if err := d.db.QueryRow(ctx, `SELECT url, alias, res_url FROM urls WHERE url = $1`, url).Scan(&data.URL, &data.Alias, &data.ResURL); err != nil {
+		fmt.Println("Error occur while finding user: ", err)
+		return storage.URLData{}, false
+	}
+
+	return data, true
 }

@@ -56,3 +56,22 @@ func (s *MemStorage) Ping(ctx context.Context) error {
 	//TODO implement me
 	return nil
 }
+
+func (s *MemStorage) GetURLbyURL(ctx context.Context, url string) (storage.URLData, bool) {
+	isExists := false
+	var link = storage.URLData{}
+	s.store.Range(func(key, value interface{}) bool {
+		v := value.(storage.URLData)
+		if v.URL == url {
+			isExists = true
+			link = v
+			return false
+		}
+		return true
+	})
+
+	if isExists {
+		return link, true
+	}
+	return storage.URLData{}, false
+}

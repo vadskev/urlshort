@@ -20,8 +20,7 @@ func Migrate(cfg *config.Config) error {
 	}(db)
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		return err
+		panic(err)
 	}
-
 	return goose.Up(db, "./migrations/")
 }
